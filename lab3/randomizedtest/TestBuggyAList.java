@@ -12,7 +12,7 @@ public class TestBuggyAList {
   @Test
   public void testThreeAddThreeRemove() {
       AListNoResizing<Integer> Correct_one = new AListNoResizing<>();
-      AListNoResizing<Integer> Buggy_one = new AListNoResizing<>();
+      BuggyAList<Integer> Buggy_one = new BuggyAList<>();
 
       Correct_one.addLast(4);
       Correct_one.addLast(5);
