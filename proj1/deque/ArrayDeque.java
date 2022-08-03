@@ -91,7 +91,7 @@ public class ArrayDeque<Item> {
         if (startPos + i <= items.length){
             return startPos + i;
         } else {
-            return startPos + i - (items.length - 1);
+            return startPos + i - (items.length + 1);
         }
     }
     /** Gets the ith item in the list (0 is the front). */
@@ -99,7 +99,7 @@ public class ArrayDeque<Item> {
         if (isEmpty()){
             System.out.println("This list is empty, nothing can be got");
             return null;
-        } else if (i > size) {
+        } else if (i > size - 1) {
             System.out.println("Index is bigger than List size");
             return null;
         }
