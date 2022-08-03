@@ -88,10 +88,10 @@ public class ArrayDeque<Item> {
     }
     //the real index of i-th item.
     private int index_i(int i){
-        if (startPos + i <= items.length){
+        if (startPos + i < items.length){
             return startPos + i;
         } else {
-            return startPos + i - (items.length + 1);
+            return startPos + i - items.length;
         }
     }
     /** Gets the ith item in the list (0 is the front). */
