@@ -1,12 +1,10 @@
 package deque;
 
-import org.apache.commons.collections.IterableMap;
-
 import java.util.Iterator;
-public class ArrayDeque<Item> implements Iterable<Item>, Deque<Item>{
-    private Item[] items;
+public class ArrayDeque<T> implements Iterable<T>, Deque<T>{
+    private T[] items;
     private int size;
-    private static int init_size = 8;
+    private static int initSize = 8;
     private static int startPos = 3;
     private int nextFirst;
     private int nextLast;
@@ -18,14 +16,14 @@ public class ArrayDeque<Item> implements Iterable<Item>, Deque<Item>{
         size = 0;
         nextFirst = startPos - 1;
         nextLast = startPos;
-        items = (Item[]) new Object[init_size];
+        items = (T[]) new Object[initSize];
     }
     /** Creates a non-empty list. */
-    public ArrayDeque(Item x) {
+    public ArrayDeque(T x) {
         size = 1;
         nextFirst = startPos - 1;
         nextLast = startPos + 1;
-        items = (Item[]) new Object[init_size];
+        items = (T[]) new Object[initSize];
         items[startPos] = x;
     }
     //Returns true if deque is empty, false otherwise.
@@ -44,8 +42,8 @@ public class ArrayDeque<Item> implements Iterable<Item>, Deque<Item>{
      * 0 = no need.
      * 1 = need big array.
      * -1 = need small array.*/
-    private void resize_or_not(int aim_size) {
-        double usage = (double) aim_size / (double) items.length;
+    private void resizable(int aimSize) {
+        double usage = (double) aimSize / (double) items.length;
         if (items.length > 16 && usage < LowerThreshold) {
             resize(items.length / 2);
         }
@@ -53,21 +51,21 @@ public class ArrayDeque<Item> implements Iterable<Item>, Deque<Item>{
             resize(items.length * 2);
         }
     }
-    private void resize(int new_capacity){
-        Item[] TempItem = (Item[]) new Object[new_capacity];
-        int TempItem_nextFirst = new_capacity / 2 - size / 2 - 1;
-        int TempItem_nextLast = TempItem_nextFirst + 1 + size;
+    private void resize(int newCapacity){
+        T[] tempItem = (T[]) new Object[newCapacity];
+        int tempItemNextFirst = newCapacity / 2 - size / 2 - 1;
+        int TempItemNextLast = tempItemNextFirst + 1 + size;
 
         if (nextFirst < nextLast){
-            System.arraycopy(items, nextFirst+1, TempItem, TempItem_nextFirst+1, size);
+            System.arraycopy(items, nextFirst + 1, tempItem, tempItemNextFirst + 1, size);
         }else if (nextFirst > nextLast){
-            System.arraycopy(items, nextFirst+1, TempItem, TempItem_nextFirst+1, items.length-nextFirst-1);
-            System.arraycopy(items, 0, TempItem, TempItem_nextFirst+items.length-nextFirst, nextLast);
+            System.arraycopy(items, nextFirst + 1, tempItem, tempItemNextFirst + 1, items.length-nextFirst-1);
+            System.arraycopy(items, 0, tempItem, tempItemNextFirst + items.length-nextFirst, nextLast);
         }
 
-        items = TempItem;
-        nextFirst = TempItem_nextFirst;
-        nextLast = TempItem_nextLast;
+        items = tempItem;
+        nextFirst = tempItemNextFirst;
+        nextLast = TempItemNextLast;
     }
      /*
      private void resize(int capacity) {
@@ -77,8 +75,8 @@ public class ArrayDeque<Item> implements Iterable<Item>, Deque<Item>{
     }*/
 
     // add item to as the first
-    public void addFirst(Item x){
-        resize_or_not(size + 1);
+    public void addFirst(T x){
+        resizable(size + 1);
         size += 1;
         items[nextFirst] = x;
         if (nextFirst == 0){
@@ -88,8 +86,8 @@ public class ArrayDeque<Item> implements Iterable<Item>, Deque<Item>{
         }
     }
     /** Inserts X into the back of the list.*/
-    public void addLast(Item x) {
-        resize_or_not(size + 1);
+    public void addLast(T x) {
+        resizable(size + 1);
         size += 1;
         items[nextLast] = x;
         if (nextLast == items.length - 1){
@@ -100,7 +98,7 @@ public class ArrayDeque<Item> implements Iterable<Item>, Deque<Item>{
 
     }
     //the real index of i-th item.
-    private int index_i(int i){
+    private int indexI(int i){
         if (nextFirst + 1 + i < items.length){
             return nextFirst + 1 + i;
         } else {
@@ -108,7 +106,7 @@ public class ArrayDeque<Item> implements Iterable<Item>, Deque<Item>{
         }
     }
     /** Gets the ith item in the list (0 is the front). */
-    public Item get(int i) {
+    public T get(int i) {
         if (isEmpty()){
             System.out.println("This list is empty, nothing can be got");
             return null;
@@ -116,58 +114,58 @@ public class ArrayDeque<Item> implements Iterable<Item>, Deque<Item>{
             System.out.println("Index is bigger than List size");
             return null;
         }
-        return items[index_i(i)];
+        return items[indexI(i)];
     }
     //get first item
-    public Item getFirst() {
+    public T getFirst() {
         return get(0);
     }
     /** Returns the item from the back of the list. */
-    public Item getLast() {
+    public T getLast() {
         return get(size-1);
     }
     //remove the first item
-    public Item removeFirst(){
+    public T removeFirst(){
         if (isEmpty()){
             System.out.println("This list is empty, nothing can be removed");
             return null;
         }
-        resize_or_not(size - 1);
+        resizable(size - 1);
         if (nextFirst == items.length - 1){
             nextFirst = 0;
         } else{
             nextFirst = nextFirst + 1;
         }
-        Item returnItem = items[nextFirst];
+        T returnItem = items[nextFirst];
         items[nextFirst] = null;
         size -= 1;
         return returnItem;
     }
     /** Deletes item from back of the list and returns deleted item. */
-    public Item removeLast() {
+    public T removeLast() {
         if (isEmpty()){
             System.out.println("This list is empty, nothing can be removed");
             return null;
         }
-        resize_or_not(size - 1);
+        resizable(size - 1);
         if (nextLast == 0){
             nextLast = items.length - 1;
         } else{
             nextLast = nextLast - 1;
         }
-        Item returnItem = items[nextLast];
+        T returnItem = items[nextLast];
         items[nextLast] = null;
         size -= 1;
         return returnItem;
     }
 
     @Override
-    public Iterator<Item> iterator(){
-        return new ArrayDeque.Array_Iterator();
+    public Iterator<T> iterator(){
+        return new arrayIterator();
     }
-    private class Array_Iterator implements Iterator<Item> {
+    private class arrayIterator implements Iterator<T> {
         private int pos;
-        public Array_Iterator(){
+        public arrayIterator(){
             pos = 0;
         }
         @Override
@@ -175,22 +173,22 @@ public class ArrayDeque<Item> implements Iterable<Item>, Deque<Item>{
             return pos < size;
         }
         @Override
-        public Item next(){
-            Item return_item =  get(pos);
+        public T next(){
+            T returnItem =  get(pos);
             pos += 1;
-            return return_item;
+            return returnItem;
         }
     }
     @Override
     public boolean equals(Object o){
         if (o == null){ return false;}
         if (this == o){ return true;}
-        if (this.getClass() != o.getClass()){return false;}
+        if (!(o instanceof Deque)){ return false;}
 
-        ArrayDeque<Item> other = (ArrayDeque<Item>) o;
-        if (this.size() != other.size()){return false;}
+        Deque<T> other = (Deque<T>) o;
+        if (this.size() != other.size()){ return false;}
         for (int i = 0; i < this.size(); i++){
-            if (this.get(i) != other.get(i)){return false;}
+            if (this.get(i) != other.get(i)){ return false;}
         }
         return true;
     }
@@ -201,7 +199,7 @@ public class ArrayDeque<Item> implements Iterable<Item>, Deque<Item>{
             return;
         }
         System.out.print("[ ");
-        for (Item x: this){
+        for (T x: this){
             System.out.print(x + " ");
         }
         System.out.println("]");

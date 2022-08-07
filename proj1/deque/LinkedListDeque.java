@@ -147,28 +147,28 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
             System.out.println("Index is bigger than List size");
             return null;
         }
-        return getRecursive_helper(index, sentinel.next);
+        return getRecursiveHelper(index, sentinel.next);
     }
 
     //Helper function for getRecursive
-    private T getRecursive_helper(int index, Node location){
+    private T getRecursiveHelper(int index, Node location){
         if (index == 0){
             return location.item;
         }
-        return getRecursive_helper(index - 1, location.next);
+        return getRecursiveHelper(index - 1, location.next);
     }
 
     @Override
     //The Deque objects we’ll make are iterable (i.e. Iterable<T>) so we must provide this method to return an iterator.
     public Iterator<T> iterator(){
-        return new List_Iterator();
+        return new listIterator();
     }
 
     //Really Iterator function. The Iterator<T> returned should have a useful hasNext() and next() method.
-    private class List_Iterator implements Iterator<T> {
+    private class listIterator implements Iterator<T> {
         private int pos;
 
-        public List_Iterator(){
+        public listIterator(){
             pos = 0;
         }
         @Override
@@ -177,9 +177,9 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
         }
         @Override
         public T next(){
-            T return_item =  get(pos);
+            T returnItem =  get(pos);
             pos += 1;
-            return return_item;
+            return returnItem;
         }
     }
 
@@ -190,12 +190,12 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     public boolean equals(Object o){
         if (o == null){ return false;}
         if (this == o){ return true;}
-        if (this.getClass() != o.getClass()){return false;}
+        if (!(o instanceof Deque)){ return false;}
 
-        LinkedListDeque<T> other = (LinkedListDeque<T>) o;
-        if (this.size() != other.size()){return false;}
+        Deque<T> other = (Deque<T>) o;
+        if (this.size() != other.size()){ return false;}
         for (int i = 0; i < this.size(); i++){
-            if (this.get(i) != other.get(i)){return false;}
+            if (this.get(i) != other.get(i)){ return false;}
         }
         return true;
     }
