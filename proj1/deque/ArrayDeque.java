@@ -1,12 +1,17 @@
 package deque;
 
-public class ArrayDeque<Item> {
+import org.apache.commons.collections.IterableMap;
+
+import java.util.Iterator;
+public class ArrayDeque<Item> implements Iterable<Item>, Deque<Item>{
     private Item[] items;
     private int size;
     private static int init_size = 8;
     private static int startPos = 3;
     private int nextFirst;
     private int nextLast;
+    private static double LowerThreshold = 0.25;
+    private static double UpperThreshold = 0.75;
 
     /** Creates an empty list. */
     public ArrayDeque() {
@@ -24,9 +29,8 @@ public class ArrayDeque<Item> {
         items[startPos] = x;
     }
     //Returns true if deque is empty, false otherwise.
-    public boolean isEmpty(){
-        return size == 0;
-    }
+    //public boolean isEmpty(){return size == 0;}
+
     /** Returns the number of items in the list. */
     public int size() {
         return size;
@@ -40,19 +44,31 @@ public class ArrayDeque<Item> {
      * 0 = no need.
      * 1 = need big array.
      * -1 = need small array.*/
-    private int resize_or_not(){
-        double LowerThreshold = 0.25;
-        double UpperThreshold = 0.75;
-        double usage =  (double) (items.length - size) / (double) items.length;
-        if (items.length > 16 && usage < LowerThreshold){
-            return -1;
+    private void resize_or_not(int aim_size) {
+        double usage = (double) aim_size / (double) items.length;
+        if (items.length > 16 && usage < LowerThreshold) {
+            resize(items.length / 2);
         }
-        if (usage >= UpperThreshold){
-            return 1;
+        if (usage >= UpperThreshold) {
+            resize(items.length * 2);
         }
-        return 0;
     }
+    private void resize(int new_capacity){
+        Item[] TempItem = (Item[]) new Object[new_capacity];
+        int TempItem_nextFirst = new_capacity / 2 - size / 2 - 1;
+        int TempItem_nextLast = TempItem_nextFirst + 1 + size;
 
+        if (nextFirst < nextLast){
+            System.arraycopy(items, nextFirst+1, TempItem, TempItem_nextFirst+1, size);
+        }else if (nextFirst > nextLast){
+            System.arraycopy(items, nextFirst+1, TempItem, TempItem_nextFirst+1, items.length-nextFirst-1);
+            System.arraycopy(items, 0, TempItem, TempItem_nextFirst+items.length-nextFirst, nextLast);
+        }
+
+        items = TempItem;
+        nextFirst = TempItem_nextFirst;
+        nextLast = TempItem_nextLast;
+    }
      /*
      private void resize(int capacity) {
         Item[] a = (Item[]) new Object[capacity];
@@ -62,7 +78,7 @@ public class ArrayDeque<Item> {
 
     // add item to as the first
     public void addFirst(Item x){
-        //resize_or_not()
+        resize_or_not(size + 1);
         size += 1;
         items[nextFirst] = x;
         if (nextFirst == 0){
@@ -73,10 +89,7 @@ public class ArrayDeque<Item> {
     }
     /** Inserts X into the back of the list.*/
     public void addLast(Item x) {
-        /* wait to modify
-        if (size == items.length) {
-            resize(size * 2);
-        }*/
+        resize_or_not(size + 1);
         size += 1;
         items[nextLast] = x;
         if (nextLast == items.length - 1){
@@ -88,10 +101,10 @@ public class ArrayDeque<Item> {
     }
     //the real index of i-th item.
     private int index_i(int i){
-        if (startPos + i < items.length){
-            return startPos + i;
+        if (nextFirst + 1 + i < items.length){
+            return nextFirst + 1 + i;
         } else {
-            return startPos + i - items.length;
+            return nextFirst + 1 + i - items.length;
         }
     }
     /** Gets the ith item in the list (0 is the front). */
@@ -107,23 +120,11 @@ public class ArrayDeque<Item> {
     }
     //get first item
     public Item getFirst() {
-        if (isEmpty()) {
-            System.out.println("This list is empty, nothing can be got");
-            return null;
-        }
-        if (nextFirst == items.length - 1){
-            return items[0];}
-        return items[nextFirst + 1];
+        return get(0);
     }
     /** Returns the item from the back of the list. */
     public Item getLast() {
-        if (isEmpty()) {
-            System.out.println("This list is empty, nothing can be got");
-            return null;
-        }
-        if (nextLast == 0){
-            return items[items.length - 1];}
-        return items[nextLast - 1];
+        return get(size-1);
     }
     //remove the first item
     public Item removeFirst(){
@@ -131,7 +132,7 @@ public class ArrayDeque<Item> {
             System.out.println("This list is empty, nothing can be removed");
             return null;
         }
-        //resize_or_not()
+        resize_or_not(size - 1);
         if (nextFirst == items.length - 1){
             nextFirst = 0;
         } else{
@@ -148,7 +149,7 @@ public class ArrayDeque<Item> {
             System.out.println("This list is empty, nothing can be removed");
             return null;
         }
-        //resize_or_not()
+        resize_or_not(size - 1);
         if (nextLast == 0){
             nextLast = items.length - 1;
         } else{
@@ -158,5 +159,51 @@ public class ArrayDeque<Item> {
         items[nextLast] = null;
         size -= 1;
         return returnItem;
+    }
+
+    @Override
+    public Iterator<Item> iterator(){
+        return new ArrayDeque.Array_Iterator();
+    }
+    private class Array_Iterator implements Iterator<Item> {
+        private int pos;
+        public Array_Iterator(){
+            pos = 0;
+        }
+        @Override
+        public boolean hasNext(){
+            return pos < size;
+        }
+        @Override
+        public Item next(){
+            Item return_item =  get(pos);
+            pos += 1;
+            return return_item;
+        }
+    }
+    @Override
+    public boolean equals(Object o){
+        if (o == null){ return false;}
+        if (this == o){ return true;}
+        if (this.getClass() != o.getClass()){return false;}
+
+        ArrayDeque<Item> other = (ArrayDeque<Item>) o;
+        if (this.size() != other.size()){return false;}
+        for (int i = 0; i < this.size(); i++){
+            if (this.get(i) != other.get(i)){return false;}
+        }
+        return true;
+    }
+
+    public void printDeque(){
+        if (isEmpty()){
+            System.out.println("This ArrayDeque list is empty");
+            return;
+        }
+        System.out.print("[ ");
+        for (Item x: this){
+            System.out.print(x + " ");
+        }
+        System.out.println("]");
     }
 }

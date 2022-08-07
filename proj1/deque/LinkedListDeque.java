@@ -5,7 +5,7 @@ import java.util.Iterator;
 /** ADDED 2/12: You should not have your Deque interface implement Iterable but rather just the two implementations LinkedListDeque and ArrayDeque.
  *  If you do the former, our autograder will give you API errors. */
 
-public class LinkedListDeque<T> implements Iterable<T> {
+public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     // Node List
     private class Node {
         public T item;
@@ -66,9 +66,7 @@ public class LinkedListDeque<T> implements Iterable<T> {
     }
 
     //Returns true if deque is empty, false otherwise.
-    public boolean isEmpty(){
-        return size == 0;
-    }
+    //public boolean isEmpty(){return size == 0;}
 
     //Returns the number of items in the deque.
     public int size(){
@@ -132,7 +130,14 @@ public class LinkedListDeque<T> implements Iterable<T> {
         }
         return Temp.item;
     }
-
+    //get first item
+    public T getFirst() {
+        return get(0);
+    }
+    /** Returns the item from the back of the list. */
+    public T getLast() {
+        return get(size-1);
+    }
     //Same as get, but uses recursion.
     public T getRecursive(int index){
         if (isEmpty()){
