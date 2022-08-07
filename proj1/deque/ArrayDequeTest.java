@@ -7,7 +7,8 @@ public class ArrayDequeTest {
     //TESTCASES HERE
     @Test
     public void testThreeAddThreeRemove() {
-        AList<Integer> reference = new AList<>();
+        //AList<Integer> reference = new AList<>();
+        LinkedListDeque<Integer> reference = new LinkedListDeque<>();
         ArrayDeque<Integer> result = new ArrayDeque<>();
 
         reference.addLast(4);
@@ -21,6 +22,8 @@ public class ArrayDequeTest {
         assertEquals(reference.removeLast(), result.removeLast());
         assertEquals(reference.removeLast(), result.removeLast());
         assertEquals(reference.removeLast(), result.removeLast());
+        assertTrue("Result equals Reference", result.equals(reference));
+        assertTrue("Reference equals Result", reference.equals(result));
     }
 
     @Test
@@ -30,7 +33,7 @@ public class ArrayDequeTest {
 
         int N = 5000;
         for (int i = 0; i < N; i += 1) {
-            int operationNumber = StdRandom.uniform(0, 7);
+            int operationNumber = StdRandom.uniform(0, 9);
             if (operationNumber == 0) {
                 // size
                 int size1 = reference.size();
@@ -88,11 +91,16 @@ public class ArrayDequeTest {
 
             } else if (operationNumber == 7 && reference.size() != 0 && result.size() != 0){
                 //get(i)
-                int randVal = StdRandom.uniform(0, 100);
+                int randVal = StdRandom.uniform(0, reference.size());
                 int ith1 = reference.get(randVal);
                 int ith2 = result.get(randVal);
                 assertEquals("Should have the same i-th item", ith1, ith2);
                 //assertEquals("Should have the same i-th item", reference.get(randVal), result.get(randVal));
+            }else if (operationNumber == 8 && reference.size() != 0 && result.size() != 0){
+                boolean t1 = result.equals(reference);
+                boolean t2 = reference.equals(result);
+                assertTrue("Result equals Reference", t1);
+                assertTrue("Reference equals Result", t2);
             }
         }
     }

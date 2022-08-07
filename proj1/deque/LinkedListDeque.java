@@ -52,17 +52,17 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     // Adds an item of type T to the front of the deque. You can assume that item is never null.
     public void addFirst(T item){
         size += 1;
-        Node Temp = sentinel.next;
-        sentinel.next = new Node(sentinel, item, Temp);
-        Temp.prev = sentinel.next;
+        Node temp = sentinel.next;
+        sentinel.next = new Node(sentinel, item, temp);
+        temp.prev = sentinel.next;
     }
 
     //Adds an item of type T to the back of the deque. You can assume that item is never null.
     public void addLast(T item){
         size += 1;
-        Node Temp = sentinel.prev;
-        Temp.next = new Node(Temp, item, sentinel);
-        sentinel.prev = Temp.next;
+        Node temp = sentinel.prev;
+        temp.next = new Node(temp, item, sentinel);
+        sentinel.prev = temp.next;
     }
 
     //Returns true if deque is empty, false otherwise.
@@ -81,7 +81,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
         }
         Node p = sentinel.next;
         System.out.print("[ ");
-        while(p != sentinel){
+        while (p != sentinel){
             System.out.print(p.item + " ");
             p = p.next;
         }
@@ -95,10 +95,10 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
             return null;
         }
         size -= 1;
-        Node Temp = sentinel.next;
-        sentinel.next = Temp.next;
-        Temp.next.prev = sentinel;
-        return Temp.item;
+        Node temp = sentinel.next;
+        sentinel.next = temp.next;
+        temp.next.prev = sentinel;
+        return temp.item;
     }
 
     //Removes and returns the item at the back of the deque. If no such item exists, returns null.
@@ -108,10 +108,10 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
             return null;
         }
         size -= 1;
-        Node Temp = sentinel.prev;
-        sentinel.prev = Temp.prev;
-        Temp.prev.next = sentinel;
-        return Temp.item;
+        Node temp = sentinel.prev;
+        sentinel.prev = temp.prev;
+        temp.prev.next = sentinel;
+        return temp.item;
     }
 
     //Gets the item at the given index, where 0 is the front, 1 is the next item, and so forth. If no such item exists, returns null. Must not alter the deque!
@@ -123,12 +123,12 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
             System.out.println("Index is bigger than List size");
             return null;
         }
-        Node Temp = sentinel.next;
-        while(index > 0){
-            Temp = Temp.next;
+        Node temp = sentinel.next;
+        while (index > 0){
+            temp = temp.next;
             index -= 1;
         }
-        return Temp.item;
+        return temp.item;
     }
     //get first item
     public T getFirst() {
@@ -136,7 +136,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     }
     /** Returns the item from the back of the list. */
     public T getLast() {
-        return get(size-1);
+        return get(size - 1);
     }
     //Same as get, but uses recursion.
     public T getRecursive(int index){
@@ -161,14 +161,14 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     @Override
     //The Deque objects we’ll make are iterable (i.e. Iterable<T>) so we must provide this method to return an iterator.
     public Iterator<T> iterator(){
-        return new listIterator();
+        return new ListIterator();
     }
 
     //Really Iterator function. The Iterator<T> returned should have a useful hasNext() and next() method.
-    private class listIterator implements Iterator<T> {
+    private class ListIterator implements Iterator<T> {
         private int pos;
 
-        public listIterator(){
+        public ListIterator(){
             pos = 0;
         }
         @Override
@@ -188,14 +188,14 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
      *  o is considered equal if it is a Deque and if it contains the same contents (as goverened by the generic T’s equals method) in the same order.
      *  (ADDED 2/12: You’ll need to use the instance of keywords for this. Read here for more information)*/
     public boolean equals(Object o){
-        if (o == null){ return false;}
-        if (this == o){ return true;}
-        if (!(o instanceof Deque)){ return false;}
+        if (o == null){ return false; }
+        if (this == o){ return true; }
+        if (!(o instanceof Deque)){ return false; }
 
         Deque<T> other = (Deque<T>) o;
-        if (this.size() != other.size()){ return false;}
+        if (this.size() != other.size()){ return false; }
         for (int i = 0; i < this.size(); i++){
-            if (this.get(i) != other.get(i)){ return false;}
+            if (this.get(i) != other.get(i)){ return false; }
         }
         return true;
     }
