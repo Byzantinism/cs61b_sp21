@@ -2,13 +2,17 @@ package gitlet;
 
 // TODO: any imports you need here
 
+import java.io.File;
+import java.io.Serializable;
 import java.util.Date; // TODO: You'll likely use this in this class
+import java.util.ResourceBundle;
+import java.util.TreeMap;
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
- *  @author TODO
+ *  @author Zebang Ge
  */
 public class Commit {
     /**
@@ -19,8 +23,58 @@ public class Commit {
      * variable is used. We've provided one example for `message`.
      */
 
-    /** The message of this Commit. */
-    private String message;
+    //Class property
+    public File commitAddress;
+    public String commitSHA1;
+    //Instance property
+    //public innerCommit commit;
 
-    /* TODO: fill in the rest of this class. */
+    public static class innerCommit implements Serializable {
+        public String message;
+        public Date timeStamp;
+        public String p1, p2;
+        public TreeMap<File, String> blobMap;
+
+        public innerCommit (String message, Date currentTime, String p1, String p2){
+            this.message = message;
+            this.timeStamp = currentTime;
+            this.p1 = p1;
+            this.p2 = p2;
+            this.blobMap = new TreeMap(); //TODO: think about this value's type.
+            //TODO: need to change and use commit method.
+        }
+    }
+
+    private static String saveProcess (String branchName, innerCommit commit){
+        String SHA1 = IO.saveCommit(commit);
+        TreeMap branches = Utils.readObject(Repository.branches_DIR, TreeMap.class);
+        branches.put(branchName, SHA1);
+        Utils.writeObject(Repository.branches_DIR, branches);
+        Utils.writeContents(Repository.HEAD_DIR, SHA1);
+        //TODO: fill log part.
+        return SHA1;
+    }
+
+    public static String initCommit (){
+        // Init Timestamp: 00:00:00 UTC, Thursday, 1 January 1970
+        innerCommit init = new innerCommit("initial commit",new Date(0), null, null);
+        String SHA1 = saveProcess("master", init);
+        return SHA1;
+    }
+
+    public static String commit (String message, innerCommit headCommit, String headSHA1,
+                                 TreeMap<File, String> TempStaged,
+                                 TreeMap<File, String> TempRemoved){
+        //TODO: corner cases.
+        headCommit.message = message;
+        headCommit.timeStamp = new Date();
+        headCommit.p1 = headSHA1;
+
+        //2. check staged/Removed and change corresponding Blob Map.
+        for (File i: TempStaged.keySet()){
+            headCommit.blobMap.put(i, TempStaged.get(i));
+
+        }
+        //3. save current Commit.
+    }
 }
