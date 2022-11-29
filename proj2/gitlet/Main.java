@@ -37,7 +37,6 @@ public class Main {
                 if (args.length > 2 || args.length == 1) throw new GitletException("Incorrect operands.");
                 work.commit(args[1]);
                 break;
-
             case "log":
 
                 break;
@@ -51,7 +50,18 @@ public class Main {
 
                 break;
             case "checkout":
-
+                if (args.length == 2){
+                    //checkout [branch name]
+                    work.checkoutBranch(args[1]);
+                } else if (args.length == 3 && args[1].equals("--")){
+                    //checkout -- [file name]
+                    work.checkoutFile(args[2]);
+                } else if (args.length == 4 && args[1].length() == IO.commitSHA1Length && args[2].equals("--")){
+                    //checkout [commit id] -- [file name]
+                    work.checkoutFileInCommit(args[1], args[3]);
+                } else {
+                    throw new GitletException("Incorrect operands.");
+                }
                 break;
             case "branch":
 

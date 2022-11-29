@@ -1,10 +1,9 @@
 package gitlet;
 
-// TODO: any imports you need here
-
 import java.io.File;
 import java.io.Serializable;
-import java.util.Date; // TODO: You'll likely use this in this class
+import java.util.Date;
+import java.util.LinkedList;
 import java.util.ResourceBundle;
 import java.util.TreeMap;
 
@@ -40,17 +39,28 @@ public class Commit {
             this.timeStamp = currentTime;
             this.p1 = p1;
             this.p2 = p2;
-            this.blobMap = new TreeMap(); //TODO: think about this value's type.
-            //TODO: need to change and use commit method.
+            this.blobMap = new TreeMap<>();
         }
     }
 
     private static String saveProcess (String branchName, innerCommit commit){
         String SHA1 = IO.saveCommit(commit);
-        TreeMap branches = Utils.readObject(Repository.branches_DIR, TreeMap.class);
-        branches.put(branchName, SHA1);
+        //Update branches Map.
+        TreeMap<String, LinkedList<String>> branches = Utils.readObject(Repository.branches_DIR, TreeMap.class);
+        LinkedList<String> HeadBranch = (LinkedList<String>) branches.get(branchName);
+
+        if (HeadBranch == null){
+            LinkedList<String> newCommit = new LinkedList<String>();
+            newCommit.addFirst(SHA1);
+            branches.put(branchName, newCommit);
+        } else {
+            HeadBranch.addFirst(SHA1);
+        }
         Utils.writeObject(Repository.branches_DIR, branches);
+        //Update HEAD
+        Utils.writeContents(Repository.HEADbranch_DIR, branchName);
         Utils.writeContents(Repository.HEAD_DIR, SHA1);
+
         //TODO: fill log part.
         return SHA1;
     }
@@ -70,11 +80,16 @@ public class Commit {
         headCommit.timeStamp = new Date();
         headCommit.p1 = headSHA1;
 
-        //2. check staged/Removed and change corresponding Blob Map.
+        //2. check staged/Removed Map.
         for (File i: TempStaged.keySet()){
-            headCommit.blobMap.put(i, TempStaged.get(i));
-
+            headCommit.blobMap.put(i, TempStaged.remove(i));
+        }
+        for (File i: TempRemoved.keySet()){
+            headCommit.blobMap.remove(i);
         }
         //3. save current Commit.
+        String HeadBranch = Utils.readContentsAsString(Repository.HEADbranch_DIR);
+        String SHA1 = saveProcess(HeadBranch, headCommit);
+        return SHA1;
     }
 }

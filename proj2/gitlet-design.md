@@ -14,15 +14,13 @@
 2. 各功能需要独立的独立, 可复印其他模块的就复用.
 
 ### .git结构
-TempArea/<br>
-   Staged(序列化)<br>
-   Removed(序列化)<br>
-   **Staged file/HashMap**<br>
 logs/<br>
    HEAD(String)<br>
    main(String)?????<br>
 objects/<br>
-   类型待定(Graph) CommitMap(序列化): 采用2个数据结构????? **利用Java序列化的特性来使用branches矩阵储存?**<br>
+   Staged(序列化)<br>
+   Removed(序列化)<br>
+   TreeMap<String, LinkedList<String>> branches **利用Java序列化的特性来使用branches矩阵储存**<br>
    HashMap+blob原文件+改文件名<br>
    HashMap+commit序列化<br>
 refs/<br>

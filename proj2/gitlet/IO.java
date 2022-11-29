@@ -6,7 +6,7 @@ import java.util.Map;
 
 // need to differ Commit and blob, and use corresponding directory to input and output.
 public class IO {
-    private static final int SHA1Length = 40 + 1;
+    public static final int commitSHA1Length = Utils.UID_LENGTH + 1;
 
     //split SHA1 to two file address.
     public static File[] splitSHA1(File aim ,String SHA1){
@@ -18,20 +18,20 @@ public class IO {
 
     //Check whether SHA1 is 41 length.
     private static void checkSHA1Length(String SHA1){
-        if (SHA1.length() != SHA1Length) throw new GitletException("This SHA1 length is NOT 41");
+        if (SHA1.length() != commitSHA1Length) throw new GitletException("This SHA1 length is NOT 41");
     }
 
     public static String saveCommit (Commit.innerCommit commit){
         //add "x" at the end for commit type
-        String SHA1 = Utils.sha1(commit) + "x";
+        byte[] commit_s = Utils.serialize(commit);
+        String SHA1 = Utils.sha1(commit_s) + "X";
 
         File[] saveDIR = splitSHA1(Repository.Object_DIR, SHA1);
         if (!saveDIR[0].exists()) saveDIR[0].mkdir();
         if (saveDIR[1].exists()) throw new GitletException("Same SHA1 file is already existed.");
 
-        Utils.writeObject(saveDIR[1], commit);
-        //TODO: read commitMap, add new commit and save it.
-
+        //Utils.writeObject(saveDIR[1], commit);
+        Utils.writeContents(saveDIR[1], commit_s);
         return SHA1;
     }
 
@@ -55,8 +55,11 @@ public class IO {
         checkSHA1Length(SHA1);
         String last1 = SHA1.substring(SHA1.length()-1);
         File SHA1_DIR = splitSHA1(Repository.Object_DIR, SHA1)[1];
-        //The last char should be "x"
-        if ("x".equals(last1)) {
+        if (!SHA1_DIR.exists()){
+            throw new GitletException("No commit with that id exists.");
+        }
+        //The last char should be "X"
+        if ("X".equals(last1)) {
             return Utils.readObject(SHA1_DIR, Commit.innerCommit.class);
         } else {
             throw new GitletException("This SHA1 does NOT belong to a Commit");
@@ -74,6 +77,4 @@ public class IO {
             throw new GitletException("This SHA1 should NOT belong to a Commit");
         }
     }
-
-    //TODO: read + change + save: commitMap and branches???
 }
