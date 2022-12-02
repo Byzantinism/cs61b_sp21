@@ -36,7 +36,7 @@ public class Repository {
     public static final File Removed_DIR = gitlet.Utils.join(Object_DIR, "Removed");
     //public static final File commitMap_DIR = gitlet.Utils.join(Object_DIR, "commitMap");
     public static final File Refs_DIR = gitlet.Utils.join(GITLET_DIR, "refs");
-    public static final File HEAD_DIR = gitlet.Utils.join(Refs_DIR, "HEAD");
+    public static final File HEADSHA1_DIR = gitlet.Utils.join(Refs_DIR, "HEAD");
     public static final File HEADbranch_DIR = gitlet.Utils.join(Refs_DIR, "HEADbranch");
     //master branch = branches[0]
     public static final File branches_DIR = gitlet.Utils.join(Refs_DIR, "branches");
@@ -47,16 +47,16 @@ public class Repository {
     public transient TreeMap ModificationsNotStaged;
     public transient TreeMap Untracked;
     //Commit
-    public transient TreeMap<String, LinkedList<String>> branches; //Save corresponding branches' commit SHA1 value.
-    public transient String HeadBranch;
+    public transient TreeMap<String, String> branches; //Save corresponding branches' commit SHA1 value.
+    public transient String headBranch;
     public transient String headSHA1;
     public transient Commit.innerCommit headCommit;
 
     public Repository(){
         TempStaged = readObject(Staged_DIR, TreeMap.class); //Maybe some errors.
         TempRemoved = readObject(Removed_DIR, TreeMap.class); //Maybe some errors.
-        HeadBranch = Utils.readContentsAsString(Repository.HEADbranch_DIR);
-        headSHA1 = Utils.readContentsAsString(HEAD_DIR);
+        headBranch = Utils.readContentsAsString(Repository.HEADbranch_DIR);
+        headSHA1 = Utils.readContentsAsString(HEADSHA1_DIR);
         headCommit = IO.readCommit(headSHA1); //Head commit.
         branches = Utils.readObject(Repository.branches_DIR, TreeMap.class);
     }
@@ -90,7 +90,7 @@ public class Repository {
         Utils.writeObject(Removed_DIR, new TreeMap<File, String>());
         //refs
         Refs_DIR.mkdirs();
-        Utils.writeObject(branches_DIR, new TreeMap<String, LinkedList<String>>());
+        Utils.writeObject(branches_DIR, new TreeMap<String, String>());
         //create init commit.
         String SHA1 = Commit.initCommit();
     };
@@ -158,7 +158,6 @@ public class Repository {
             System.out.print("No changes added to the commit.");
             return;
         }
-        //TODO: need to try work or NOT.
         if (message.matches("\s*") ){
             System.out.print("Please enter a commit message.");
             return;
@@ -169,13 +168,13 @@ public class Repository {
         Commit.innerCommit i = headCommit;
         String iSHA1 = headSHA1;
         while(i != null){
-            innerLog(i, iSHA1);
+            printLog(i, iSHA1);
             iSHA1 = i.p1;
             i = IO.readCommit(i.p1);
         }
     }
 
-    private static void innerLog (Commit.innerCommit i, String iSHA1){
+    private static void printLog(Commit.innerCommit i, String iSHA1){
         System.out.println("===");
         System.out.printf("commit %s%n",iSHA1);
         if (i.p2 != null) {
@@ -187,15 +186,15 @@ public class Repository {
     public static void globalLog (){
         List<String> folderList = IO.plainFoldernamesIn(Repository.Object_DIR);
         if (folderList == null){
-            System.out.println("===");
+            System.out.printf("===" + "%n%n");
             return;
         }
         for (String i: folderList){
             List<String> fileList = Utils.plainFilenamesIn(i);
-            fileList.removeIf(next -> IO.commitString.equals(next.substring(next.length() - 1)));
+            fileList.removeIf(next -> !IO.commitString.equals(next.substring(next.length() - 1)));
             for (String nextSHA1: fileList){
                 Commit.innerCommit nextCommit = IO.readCommit(nextSHA1);
-                innerLog(nextCommit, nextSHA1);
+                printLog(nextCommit, nextSHA1);
             }
         }
     }
@@ -222,12 +221,11 @@ public class Repository {
         }
     }
     public void checkoutBranch (String branchName){
-        LinkedList<String> HeadBranch = branches.get(branchName);
-        if(HeadBranch == null){
+        String branchSHA1 = branches.get(branchName);
+        if(branchSHA1 == null){
             System.out.print("No such branch exists.");
             return;
         }
-        String branchSHA1 = HeadBranch.getFirst();
         if(headSHA1.equals(branchSHA1)){
             System.out.print("No need to checkout the current branch.");
             return;
@@ -238,7 +236,7 @@ public class Repository {
         }
         restoreCommit(branchSHA1);
         Utils.writeContents(Repository.HEADbranch_DIR, branchName);
-        Utils.writeContents(Repository.HEAD_DIR, branchSHA1);
+        Utils.writeContents(Repository.HEADSHA1_DIR, branchSHA1);
     }
     public void checkoutFile (String fileName){ checkoutFileInCommit(headSHA1, fileName); }
     public void checkoutFileInCommit (String commitID, String fileName){
@@ -268,7 +266,7 @@ public class Repository {
             System.out.print("A branch with that name already exists.");
             return;
         }
-        branches.put(branchName, branches.get(HeadBranch));
+        branches.put(branchName, branches.get(headBranch));
         Utils.writeObject(Repository.branches_DIR, branches);
     }
     public void rmBranch (String branchName){
@@ -276,7 +274,7 @@ public class Repository {
             System.out.print("A branch with that name does not exist.");
             return;
         }
-        if (headSHA1.equals(branches.get(branchName).getFirst())){
+        if (headSHA1.equals(branches.get(branchName))){
             System.out.print("Cannot remove the current branch.");
             return;
         }
@@ -290,15 +288,15 @@ public class Repository {
         //TODO: The staging area is cleared.
         restoreCommit(commitSHA1);
         //TODO: Also moves the current branch’s head to that commit node.
-        LinkedList<String> newBranchHead = branches.get(HeadBranch);
+        String branchSHA1 = branches.get(headBranch);
         //TODO: think about the structure of branches.
         /*
         for (newBranchHead)
         while (commitSHA1.equals(newBranchHead.getFirst())){
             newBranchHead = newBranchHead.;
         }
-        branches.put(HeadBranch, )
-        Utils.writeContents(Repository.HEAD_DIR, commitSHA1);
+        branches.put(headBranch, )
+        Utils.writeContents(Repository.HEADSHA1_DIR, commitSHA1);
         */
     }
     public static void merge (){}

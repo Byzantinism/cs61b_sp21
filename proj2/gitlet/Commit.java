@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.LinkedList;
-import java.util.ResourceBundle;
 import java.util.TreeMap;
 
 /** Represents a gitlet commit object.
@@ -47,20 +46,13 @@ public class Commit {
         String SHA1 = IO.saveCommit(commit);
 
         //Update branches Map.
-        TreeMap<String, LinkedList<String>> branches = Utils.readObject(Repository.branches_DIR, TreeMap.class);
-        LinkedList<String> HeadBranch = branches.get(branchName);
-        if (HeadBranch == null){
-            LinkedList<String> newCommit = new LinkedList<>();
-            newCommit.addFirst(SHA1);
-            branches.put(branchName, newCommit);
-        } else {
-            HeadBranch.addFirst(SHA1);
-        }
+        TreeMap<String, String> branches = Utils.readObject(Repository.branches_DIR, TreeMap.class);
+        branches.put(branchName, SHA1);
         Utils.writeObject(Repository.branches_DIR, branches);
 
         //Update HEAD
         Utils.writeContents(Repository.HEADbranch_DIR, branchName);
-        Utils.writeContents(Repository.HEAD_DIR, SHA1);
+        Utils.writeContents(Repository.HEADSHA1_DIR, SHA1);
 
         //TODO: fill log part.
         return SHA1;
