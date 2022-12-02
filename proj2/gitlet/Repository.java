@@ -48,50 +48,58 @@ public class Repository {
     public transient TreeMap Untracked;
     //Commit
     public transient TreeMap<String, LinkedList<String>> branches; //Save corresponding branches' commit SHA1 value.
+    public transient String HeadBranch;
     public transient String headSHA1;
     public transient Commit.innerCommit headCommit;
 
     public Repository(){
         TempStaged = readObject(Staged_DIR, TreeMap.class); //Maybe some errors.
         TempRemoved = readObject(Removed_DIR, TreeMap.class); //Maybe some errors.
+        HeadBranch = Utils.readContentsAsString(Repository.HEADbranch_DIR);
         headSHA1 = Utils.readContentsAsString(HEAD_DIR);
         headCommit = IO.readCommit(headSHA1); //Head commit.
+        branches = Utils.readObject(Repository.branches_DIR, TreeMap.class);
     }
     /** Check whether .gitlet exists or not.
      *  needInit = 0: need .gitlet not exist.
      *  needInit = 1: need .gitlet     exist.*/
-    public static void initCheck(int needInit){
+    public static boolean initCheck(int needInit){
         switch (needInit){
             case 0:
                 if (GITLET_DIR.exists()){
-                    throw new GitletException("A Gitlet version-control system already exists in the current directory.");
+                    System.out.print("A Gitlet version-control system already exists in the current directory.");
+                    return false;
                 }
                 break;
             case 1:
                 if (!GITLET_DIR.exists()){
-                    throw new GitletException("Not in an initialized Gitlet directory.");
+                    System.out.print("Not in an initialized Gitlet directory.");
+                    return false;
                 }
                 break;
         }
+        return true;
     }
     public static void init (){
-        Repository.initCheck(0);
-        //logs
+        if (!Repository.initCheck(0)) return;
+        //create folders. Start form logs.
         Logs_DIR.mkdirs();
         //objects: commitMap + StagedMap + RemovedMap
         Object_DIR.mkdirs();
         Utils.writeObject(Staged_DIR, new TreeMap<File, String>());
         Utils.writeObject(Removed_DIR, new TreeMap<File, String>());
-        //Utils.writeObject(commitMap_DIR, new TreeMap<>());//TODO: think about commitMap type.
         //refs
         Refs_DIR.mkdirs();
         Utils.writeObject(branches_DIR, new TreeMap<String, LinkedList<String>>());
-        //Folder structure is done. Now create init commit.
+        //create init commit.
         String SHA1 = Commit.initCommit();
     };
     public void add (String x){
         File xDir = gitlet.Utils.join(CWD, x);
-        if (!xDir.exists()) throw new GitletException("File does not exist.");
+        if (!xDir.exists()) {
+            System.out.print("File does not exist.");
+            return;
+        }
         String fileContent = Utils.readContentsAsString(xDir);
         String xSHA1 = Utils.sha1(fileContent);
 
@@ -112,7 +120,8 @@ public class Repository {
         boolean containedInStaged = TempStaged.containsKey(xDir);
         boolean containedInCurrentCommit = headCommit.blobMap.containsKey(xDir);
         if (!containedInStaged && !containedInCurrentCommit) {
-            throw new GitletException("No reason to remove the file.");
+            System.out.print("No reason to remove the file.");
+            return;
         }
         if (containedInStaged){
             popupTempArea(Staged_DIR, TempStaged, xDir);
@@ -146,31 +155,54 @@ public class Repository {
     }
     public void commit (String message){
         if (TempStaged.isEmpty() && TempRemoved.isEmpty()){
-            throw new GitletException("No changes added to the commit.");
+            System.out.print("No changes added to the commit.");
+            return;
         }
         //TODO: need to try work or NOT.
         if (message.matches("\s*") ){
-            throw new GitletException("Please enter a commit message.");
+            System.out.print("Please enter a commit message.");
+            return;
         }
         String nextSHA1 = Commit.commit(message, headCommit, headSHA1, TempStaged, TempRemoved);
     }
-    public static void log (){}
-    public static void globalLog (){}
+    public void log (){
+        Commit.innerCommit i = headCommit;
+        String iSHA1 = headSHA1;
+        while(i != null){
+            innerLog(i, iSHA1);
+            iSHA1 = i.p1;
+            i = IO.readCommit(i.p1);
+        }
+    }
+
+    private static void innerLog (Commit.innerCommit i, String iSHA1){
+        System.out.println("===");
+        System.out.printf("commit %s%n",iSHA1);
+        if (i.p2 != null) {
+            System.out.printf("Merge: %s %s", i.p1.substring(0, 6), i.p2.substring(0, 6));
+        }
+        System.out.println("Date: " + dateFormat.format(i.timeStamp));
+        System.out.printf(i.message + "%n%n");
+    }
+    public static void globalLog (){
+        List<String> folderList = IO.plainFoldernamesIn(Repository.Object_DIR);
+        if (folderList == null){
+            System.out.println("===");
+            return;
+        }
+        for (String i: folderList){
+            List<String> fileList = Utils.plainFilenamesIn(i);
+            fileList.removeIf(next -> IO.commitString.equals(next.substring(next.length() - 1)));
+            for (String nextSHA1: fileList){
+                Commit.innerCommit nextCommit = IO.readCommit(nextSHA1);
+                innerLog(nextCommit, nextSHA1);
+            }
+        }
+    }
     public static void find (){}
     public static void status (){}
-    public void checkoutBranch (String branchName){
-        TreeMap<String, LinkedList<String>> branches = Utils.readObject(Repository.branches_DIR, TreeMap.class);
-        LinkedList<String> HeadBranch = (LinkedList<String>) branches.get(branchName);
-        if(HeadBranch == null){
-            throw new GitletException("No such branch exists.");
-        }
-        String branchSHA1 = HeadBranch.getFirst();
-        if(headSHA1.equals(branchSHA1)){
-            throw new GitletException("No need to checkout the current branch.");
-        }
-        if(!TempStaged.isEmpty()){
-            throw new GitletException("There is an untracked file in the way; delete it, or add and commit it first.");
-        }
+
+    private static void restoreCommit (String commitSHA1){
         //Any files that are tracked in the current branch but are not present in the checked-out branch are deleted.
         List<String> filenames = Utils.plainFilenamesIn(CWD);
         if (filenames != null){
@@ -179,7 +211,7 @@ public class Repository {
             }
         }
         //Takes all files in the commit at the head of the given branch, and puts them in the working directory, overwriting the versions of the files that are already there if they exist.
-        Commit.innerCommit branchCommit = IO.readCommit(branchSHA1);
+        Commit.innerCommit branchCommit = IO.readCommit(commitSHA1);
         for (File i: branchCommit.blobMap.keySet()){
             File blobDIR = IO.splitSHA1(Object_DIR, branchCommit.blobMap.get(i))[1];
             try {
@@ -188,7 +220,23 @@ public class Repository {
                 throw new GitletException(excp.getMessage());
             }
         }
-        //the given branch will now be considered the current branch (HEAD).
+    }
+    public void checkoutBranch (String branchName){
+        LinkedList<String> HeadBranch = branches.get(branchName);
+        if(HeadBranch == null){
+            System.out.print("No such branch exists.");
+            return;
+        }
+        String branchSHA1 = HeadBranch.getFirst();
+        if(headSHA1.equals(branchSHA1)){
+            System.out.print("No need to checkout the current branch.");
+            return;
+        }
+        if(!TempStaged.isEmpty()){
+            System.out.print("There is an untracked file in the way; delete it, or add and commit it first.");
+            return;
+        }
+        restoreCommit(branchSHA1);
         Utils.writeContents(Repository.HEADbranch_DIR, branchName);
         Utils.writeContents(Repository.HEAD_DIR, branchSHA1);
     }
@@ -204,7 +252,8 @@ public class Repository {
         File fileDIR = Utils.join(CWD, fileName);
         String fileSHA1 = aimCommit.blobMap.get(fileDIR);
         if (fileSHA1 == null){
-            throw new GitletException("File does not exist in that commit.");
+            System.out.print("File does not exist in that commit.");
+            return;
         }
         File blobDIR = IO.splitSHA1(Object_DIR, fileSHA1)[1];
 
@@ -214,11 +263,43 @@ public class Repository {
             throw new GitletException(excp.getMessage());
         }
     }
-    public static void createBranch (String branchName){}
-    private static void branch (String branchName, String commitSHA1){
-
+    public void createBranch (String branchName){
+        if (branches.containsKey(branchName)){
+            System.out.print("A branch with that name already exists.");
+            return;
+        }
+        branches.put(branchName, branches.get(HeadBranch));
+        Utils.writeObject(Repository.branches_DIR, branches);
     }
-    public static void rmBranch (){}
-    public static void reset (){}
+    public void rmBranch (String branchName){
+        if (!branches.containsKey(branchName)){
+            System.out.print("A branch with that name does not exist.");
+            return;
+        }
+        if (headSHA1.equals(branches.get(branchName).getFirst())){
+            System.out.print("Cannot remove the current branch.");
+            return;
+        }
+        branches.remove(branchName);
+        Utils.writeObject(Repository.branches_DIR, branches);
+    }
+    public void reset (String commitSHA1){
+        //TODO: Corner case
+        //TODO: If no commit with the given id exists, print No commit with that id exists.
+        //TODO: If a working file is untracked in the current branch and would be overwritten by the reset, print `There is an untracked file in the way; delete it, or add and commit it first.`and exit;
+        //TODO: The staging area is cleared.
+        restoreCommit(commitSHA1);
+        //TODO: Also moves the current branch’s head to that commit node.
+        LinkedList<String> newBranchHead = branches.get(HeadBranch);
+        //TODO: think about the structure of branches.
+        /*
+        for (newBranchHead)
+        while (commitSHA1.equals(newBranchHead.getFirst())){
+            newBranchHead = newBranchHead.;
+        }
+        branches.put(HeadBranch, )
+        Utils.writeContents(Repository.HEAD_DIR, commitSHA1);
+        */
+    }
     public static void merge (){}
 }

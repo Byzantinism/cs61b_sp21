@@ -180,7 +180,7 @@ Repository.[TreeMap Staged: key = 文件名, value = SHA-1]
 **?????** _EDITED 3/5: Note that in Gitlet, there is no way to be in a detached head state since there is no checkout command that will move the HEAD pointer to a specific commit. The reset command will do that, though it also moves the branch pointer. Thus, in Gitlet, you will never be in a detached HEAD state._
 10. branch: 在branch[]中增加一个pointer.
 11. rm-branch: 删除对应branch pointer 
-12. reset: checkout到某Commit上, 并且移动branch pointer
+12. reset: checkout到某Commit上, 并且移动branch pointer和Head pointer. **1个branch有1个linkedlist, 可以通过popout来拿掉之前commit但是回头要merge的话,就不好处理了. 还是1个commit1个linkedlist顺带塞进SHA1/date/message**
 13. merge: 
 
 ### Class Commit

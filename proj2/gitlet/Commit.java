@@ -45,18 +45,19 @@ public class Commit {
 
     private static String saveProcess (String branchName, innerCommit commit){
         String SHA1 = IO.saveCommit(commit);
+
         //Update branches Map.
         TreeMap<String, LinkedList<String>> branches = Utils.readObject(Repository.branches_DIR, TreeMap.class);
-        LinkedList<String> HeadBranch = (LinkedList<String>) branches.get(branchName);
-
+        LinkedList<String> HeadBranch = branches.get(branchName);
         if (HeadBranch == null){
-            LinkedList<String> newCommit = new LinkedList<String>();
+            LinkedList<String> newCommit = new LinkedList<>();
             newCommit.addFirst(SHA1);
             branches.put(branchName, newCommit);
         } else {
             HeadBranch.addFirst(SHA1);
         }
         Utils.writeObject(Repository.branches_DIR, branches);
+
         //Update HEAD
         Utils.writeContents(Repository.HEADbranch_DIR, branchName);
         Utils.writeContents(Repository.HEAD_DIR, SHA1);
@@ -66,7 +67,7 @@ public class Commit {
     }
 
     public static String initCommit (){
-        // Init Timestamp: 00:00:00 UTC, Thursday, 1 January 1970
+        //Init Timestamp: 00:00:00 UTC, Thursday, 1 January 1970
         innerCommit init = new innerCommit("initial commit",new Date(0), null, null);
         String SHA1 = saveProcess("master", init);
         return SHA1;
@@ -87,6 +88,7 @@ public class Commit {
         for (File i: TempRemoved.keySet()){
             headCommit.blobMap.remove(i);
         }
+
         //3. save current Commit.
         String HeadBranch = Utils.readContentsAsString(Repository.HEADbranch_DIR);
         String SHA1 = saveProcess(HeadBranch, headCommit);

@@ -10,44 +10,59 @@ public class Main {
     /** Usage: java gitlet.Main ARGS, where ARGS contains
      *  <COMMAND> <OPERAND1> <OPERAND2> ... 
      */
+    private static boolean argsCheck (String[] args, int length){
+        if (args.length != length) {
+            System.out.print("Incorrect operands.");
+            return false;
+        }
+        return true;
+    }
+
     public static void main(String[] args) {
         // what if args is empty?
-        if (args.length == 0){throw new GitletException("Please enter a command.");}
+        if (args.length == 0){
+            System.out.print("Please enter a command.");
+            return;
+        }
         String firstArg = args[0];
-        // TODO: handle the `init` command
+        //handle the `init` command
         if (firstArg.equals("init")){
-            if (args.length > 1) throw new GitletException("Incorrect operands.");
+            if (!argsCheck(args, 1)) return;
             Repository.init();
             return;
         }
         // Following gitlet commands need .gitlet folder.
         // TODO: If a user inputs a command with the wrong number or format of operands, print the message Incorrect operands. and exit.
-        Repository.initCheck(1);
+        if (!Repository.initCheck(1)) return;
         Repository work = new Repository();
         switch(firstArg) {
             case "add":
-                if (args.length > 2 || args.length == 1) throw new GitletException("Incorrect operands.");
+                if (!argsCheck(args, 2)) return;
                 work.add(args[1]);
                 break;
             case "rm":
-                if (args.length > 2 || args.length == 1) throw new GitletException("Incorrect operands.");
+                if (!argsCheck(args, 2)) return;
                 work.rm(args[1]);
                 break;
             case "commit":
-                if (args.length > 2 || args.length == 1) throw new GitletException("Incorrect operands.");
+                if (!argsCheck(args, 2)) return;
                 work.commit(args[1]);
                 break;
             case "log":
-
+                if (!argsCheck(args, 1)) return;
+                work.log();
                 break;
             case "global-log":
-
+                if (!argsCheck(args, 1)) return;
+                Repository.globalLog();
                 break;
             case "find":
-
+                if (!argsCheck(args, 2)) return;
+                //TODO: wait for finished.
                 break;
             case "status":
-
+                if (!argsCheck(args, 1)) return;
+                //TODO: wait for finished.
                 break;
             case "checkout":
                 if (args.length == 2){
@@ -60,23 +75,26 @@ public class Main {
                     //checkout [commit id] -- [file name]
                     work.checkoutFileInCommit(args[1], args[3]);
                 } else {
-                    throw new GitletException("Incorrect operands.");
+                    System.out.print("Incorrect operands.");
                 }
                 break;
             case "branch":
-
+                if (!argsCheck(args, 2)) return;
+                work.createBranch(args[2]);
                 break;
             case "rm-branch":
-
+                if (!argsCheck(args, 2)) return;
+                work.rmBranch(args[2]);
                 break;
             case "reset":
-
+                if (!argsCheck(args, 2)) return;
+                work.reset(args[2]);
                 break;
             case "merge":
-
+                //TODO: wait for finished.
                 break;
             default:
-                throw new GitletException("No command with that name exists.");
+                System.out.print("No command with that name exists.");
         }
     }
 }
