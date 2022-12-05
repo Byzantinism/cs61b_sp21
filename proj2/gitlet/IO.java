@@ -20,7 +20,7 @@ public class IO {
         return new File[]{SHA1_DIR_L1, SHA1_DIR_L2};//[1st layer, 2nd layer]
     }
     //Check whether SHA1 is 41 length.
-    private static void checkSHA1Length(String SHA1){
+    public static void checkSHA1Length(String SHA1){
         if (SHA1.length() != commitSHA1Length) throw new GitletException("This SHA1 length is NOT 41");
     }
     public static String saveCommit (Commit.innerCommit commit){

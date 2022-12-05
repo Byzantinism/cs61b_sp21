@@ -58,11 +58,11 @@ public class Main {
                 break;
             case "find":
                 if (!argsCheck(args, 2)) return;
-                //TODO: wait for finished.
+                Repository.find(args[1]);
                 break;
             case "status":
                 if (!argsCheck(args, 1)) return;
-                //TODO: wait for finished.
+                work.status();
                 break;
             case "checkout":
                 if (args.length == 2){

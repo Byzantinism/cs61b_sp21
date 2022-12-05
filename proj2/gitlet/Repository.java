@@ -10,15 +10,13 @@ import static gitlet.Utils.*;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 /** Represents a gitlet repository.
- *  TODO: It's a good idea to give a description here of what else this Class
+ *  It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
  *  @author Zebang Ge
  */
 public class Repository {
     /**
-     * TODO: add instance variables here.
-     *
      * List all instance variables of the Repository class here with a useful
      * comment above them describing what that variable represents and how that
      * variable is used. We've provided two examples for you.
@@ -44,8 +42,6 @@ public class Repository {
     //TempAreas
     public transient TreeMap<File, String> TempStaged;
     public transient TreeMap<File, String> TempRemoved;
-    public transient TreeMap ModificationsNotStaged;
-    public transient TreeMap Untracked;
     //Commit
     public transient TreeMap<String, String> branches; //Save corresponding branches' commit SHA1 value.
     public transient String headBranch;
@@ -93,7 +89,7 @@ public class Repository {
         Utils.writeObject(branches_DIR, new TreeMap<String, String>());
         //create init commit.
         String SHA1 = Commit.initCommit();
-    };
+    }
     public void add (String x){
         File xDir = gitlet.Utils.join(CWD, x);
         if (!xDir.exists()) {
@@ -114,7 +110,7 @@ public class Repository {
         if (!xSHA1.equals(TempStaged.get(xDir))){
             updateTempArea(Staged_DIR,TempStaged, xDir, xSHA1, fileContent);
         }
-    };
+    }
     public void rm (String x){
         File xDir = gitlet.Utils.join(CWD, x);
         boolean containedInStaged = TempStaged.containsKey(xDir);
@@ -185,10 +181,6 @@ public class Repository {
     }
     public static void globalLog (){
         List<String> folderList = IO.plainFoldernamesIn(Repository.Object_DIR);
-        if (folderList == null){
-            System.out.printf("===" + "%n%n");
-            return;
-        }
         for (String i: folderList){
             List<String> fileList = Utils.plainFilenamesIn(i);
             fileList.removeIf(next -> !IO.commitString.equals(next.substring(next.length() - 1)));
@@ -198,9 +190,65 @@ public class Repository {
             }
         }
     }
-    public static void find (){}
-    public static void status (){}
-
+    public static void find (String message){
+        List<String> folderList = IO.plainFoldernamesIn(Repository.Object_DIR);
+        int count = 0;
+        for (String i : folderList) {
+            List<String> fileList = Utils.plainFilenamesIn(i);
+            fileList.removeIf(next -> next.length() != IO.commitSHA1Length || !IO.commitString.equals(next.substring(next.length() - 1)));
+            for (String nextSHA1 : fileList) {
+                Commit.innerCommit nextCommit = IO.readCommit(nextSHA1);
+                if (message.equals(nextCommit.message)) {
+                    System.out.println(nextSHA1);
+                    count += 1;
+                }
+            }
+        }
+        if (count == 0){
+            System.out.println("Found no commit with that message.");
+        }
+    }
+    private List<String> ScanUntracked (){
+        //TODO: next task.
+        List<String> filenames = Utils.plainFilenamesIn(CWD);
+        for (File i: TempStaged.keySet()){
+            filenames.remove(i.getName());
+        }
+        for (File i: headCommit.blobMap.keySet()){
+            filenames.remove(i.getName());
+        }
+        return filenames;
+    }
+    private static void printTempAreaStatus (String section, TreeMap<File, String> Map){
+        System.out.printf("=== %s ===%n", section);
+        if (Map == null) { return;}
+        for (File i: Map.keySet()){
+            System.out.println(i.getName());
+        }
+        System.out.println();
+    }
+    public void status (){
+        System.out.println("=== Branches ===");
+        for (String branch: branches.keySet()){
+            if (Commit.initBranchName.equals(branch)){
+                System.out.println("*" + branch);
+            } else {
+                System.out.println(branch);
+            }
+        }
+        System.out.println();
+        printTempAreaStatus("Staged Files", TempStaged);
+        printTempAreaStatus("Removed Files", TempRemoved);
+        //TODO: modified but not staged
+        printTempAreaStatus("Modifications Not Staged For Commit", null);
+        //Untracked Files
+        System.out.println("=== Untracked Files ===");
+        for (String i: ScanUntracked()){
+            System.out.println(i);
+        }
+        System.out.println();
+    }
+    //TODO: may need to modify.
     private static void restoreCommit (String commitSHA1){
         //Any files that are tracked in the current branch but are not present in the checked-out branch are deleted.
         List<String> filenames = Utils.plainFilenamesIn(CWD);
@@ -230,7 +278,7 @@ public class Repository {
             System.out.print("No need to checkout the current branch.");
             return;
         }
-        if(!TempStaged.isEmpty()){
+        if(!ScanUntracked().isEmpty()){
             System.out.print("There is an untracked file in the way; delete it, or add and commit it first.");
             return;
         }
@@ -281,23 +329,22 @@ public class Repository {
         branches.remove(branchName);
         Utils.writeObject(Repository.branches_DIR, branches);
     }
+    //TODO: Could reset go to the commit not belonging to current branch?
     public void reset (String commitSHA1){
-        //TODO: Corner case
-        //TODO: If no commit with the given id exists, print No commit with that id exists.
-        //TODO: If a working file is untracked in the current branch and would be overwritten by the reset, print `There is an untracked file in the way; delete it, or add and commit it first.`and exit;
-        //TODO: The staging area is cleared.
-        restoreCommit(commitSHA1);
-        //TODO: Also moves the current branch’s head to that commit node.
-        String branchSHA1 = branches.get(headBranch);
-        //TODO: think about the structure of branches.
-        /*
-        for (newBranchHead)
-        while (commitSHA1.equals(newBranchHead.getFirst())){
-            newBranchHead = newBranchHead.;
+        File commitDIR = IO.splitSHA1(Object_DIR, commitSHA1)[1];
+        if (!commitDIR.exists()){
+            System.out.print("No commit with that id exists.");
+            return;
         }
-        branches.put(headBranch, )
+        if (!TempStaged.isEmpty() || !TempRemoved.isEmpty() || !ScanUntracked().isEmpty()){
+            //TODO: maybe some errors. (If a working file is untracked in the current branch and would be overwritten by the reset
+            System.out.print("There is an untracked file in the way; delete it, or add and commit it first.");
+            return;
+        }
+        restoreCommit(commitSHA1);
+        branches.put(headBranch, commitSHA1);
+        Utils.writeObject(Repository.branches_DIR, branches);
         Utils.writeContents(Repository.HEADSHA1_DIR, commitSHA1);
-        */
     }
     public static void merge (){}
 }

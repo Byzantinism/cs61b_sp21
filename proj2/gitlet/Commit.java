@@ -22,7 +22,7 @@ public class Commit {
      */
 
     //Class property
-    public File commitAddress;
+    public static String initBranchName = "master";
     public String commitSHA1;
     //Instance property
     //public innerCommit commit;
@@ -61,7 +61,7 @@ public class Commit {
     public static String initCommit (){
         //Init Timestamp: 00:00:00 UTC, Thursday, 1 January 1970
         innerCommit init = new innerCommit("initial commit",new Date(0), null, null);
-        String SHA1 = saveProcess("master", init);
+        String SHA1 = saveProcess(initBranchName, init);
         return SHA1;
     }
 
