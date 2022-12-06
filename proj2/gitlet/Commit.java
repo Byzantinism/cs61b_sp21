@@ -75,13 +75,13 @@ public class Commit {
 
         //2. check staged/Removed Map and save.
         for (File i: TempStaged.keySet()){
-            headCommit.blobMap.put(i, TempStaged.remove(i));
+            headCommit.blobMap.put(i, TempStaged.get(i));
         }
         for (File i: TempRemoved.keySet()){
             headCommit.blobMap.remove(i);
         }
-        Utils.writeObject(Repository.Staged_DIR, TempStaged);
-        Utils.writeObject(Repository.Removed_DIR, TempRemoved);
+        Utils.writeObject(Repository.Staged_DIR, new TreeMap<File, String>());
+        Utils.writeObject(Repository.Removed_DIR, new TreeMap<File, String>());
         //3. save current Commit.
         String HeadBranch = Utils.readContentsAsString(Repository.HEADbranch_DIR);
         String SHA1 = saveProcess(HeadBranch, headCommit);
