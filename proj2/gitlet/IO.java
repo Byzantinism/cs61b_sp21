@@ -56,9 +56,6 @@ public class IO {
         checkSHA1Length(SHA1);
         String last1 = SHA1.substring(SHA1.length()-1);
         File SHA1_DIR = splitSHA1(Repository.Object_DIR, SHA1)[1];
-        if (!SHA1_DIR.exists()){
-            throw new GitletException("No commit with that id exists.");
-        }
         //The last char should be commitString
         if (commitString.equals(last1)) {
             return Utils.readObject(SHA1_DIR, Commit.innerCommit.class);

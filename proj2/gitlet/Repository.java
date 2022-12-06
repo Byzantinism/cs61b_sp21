@@ -98,19 +98,14 @@ public class Repository {
         }
         String fileContent = Utils.readContentsAsString(xDir);
         String xSHA1 = Utils.sha1(fileContent);
-
-        if (TempRemoved.containsKey(xDir)) {
-            popupTempArea(Removed_DIR, TempRemoved, xDir);
-        }
-
+        popupTempArea(Removed_DIR, TempRemoved, xDir);
         if (xSHA1.equals(headCommit.blobMap.get(xDir))){
             popupTempArea(Staged_DIR, TempStaged, xDir);
-            return;
-        }
-        if (!xSHA1.equals(TempStaged.get(xDir))){
+        } else if (!xSHA1.equals(TempStaged.get(xDir))){
             updateTempArea(Staged_DIR,TempStaged, xDir, xSHA1, fileContent);
         }
     }
+    //TODO: the logic may have some errors.
     public void rm (String x){
         File xDir = gitlet.Utils.join(CWD, x);
         boolean containedInStaged = TempStaged.containsKey(xDir);
@@ -121,18 +116,22 @@ public class Repository {
         }
         if (containedInStaged){
             popupTempArea(Staged_DIR, TempStaged, xDir);
-        }
-        if (containedInCurrentCommit){
+        } else {
+            //containedInCurrentCommit = true.
             TempRemoved.put(xDir,"Delete");
+            Utils.writeObject(Removed_DIR, TempRemoved);
             Utils.restrictedDelete(xDir);
         }
     }
     //Delete certain item from TempMap.
     private static void popupTempArea(File Map_Dir, TreeMap<File, String> Map, File xDir){
-        File oldSHA1_DIR = IO.splitSHA1(Object_DIR, Map.get(xDir))[1];
-        Utils.restrictedDelete(oldSHA1_DIR);
-        Map.remove(xDir);
-        Utils.writeObject(Map_Dir,Map);
+        String oldSHA1 = Map.get(xDir);
+        if (oldSHA1 != null){
+            File oldSHA1_DIR = IO.splitSHA1(Object_DIR, oldSHA1)[1];
+            oldSHA1_DIR.delete();
+            Map.remove(xDir);
+            Utils.writeObject(Map_Dir,Map);
+        }
     }
     //Update certain item inside TempMap.
     private static void updateTempArea(File Map_Dir, TreeMap<File, String> Map,
@@ -140,7 +139,7 @@ public class Repository {
         String oldSHA1 = Map.get(xDir);
         if (oldSHA1 != null) {
             File oldSHA1_DIR = IO.splitSHA1(Object_DIR, oldSHA1)[1];
-            Utils.restrictedDelete(oldSHA1_DIR);
+            oldSHA1_DIR.delete();
         }
         Map.put(xDir, xSHA1);
         Utils.writeObject(Map_Dir,Map);
@@ -179,30 +178,36 @@ public class Repository {
         System.out.println("Date: " + dateFormat.format(i.timeStamp));
         System.out.printf(i.message + "%n%n");
     }
-    public static void globalLog (){
+
+    private static List<String> scanCommit(){
         List<String> folderList = IO.plainFoldernamesIn(Repository.Object_DIR);
+        List<String> commitList = new ArrayList<>();
         for (String i: folderList){
-            List<String> fileList = Utils.plainFilenamesIn(i);
-            fileList.removeIf(next -> !IO.commitString.equals(next.substring(next.length() - 1)));
-            for (String nextSHA1: fileList){
+            List<String> fileList = Utils.plainFilenamesIn(Utils.join(Object_DIR, i));
+            for (String next: fileList){
+                if (next != null && next.length() == (IO.commitSHA1Length -2) && IO.commitString.equals(next.substring(next.length() - 1))){
+                    commitList.add(i + next);//Combine first 2 and last 39 digits.
+                }
+            }
+        }
+        return commitList;
+    }
+    public static void globalLog (){
+        List<String> fileList = scanCommit();
+        for (String nextSHA1: fileList){
                 Commit.innerCommit nextCommit = IO.readCommit(nextSHA1);
                 printLog(nextCommit, nextSHA1);
-            }
         }
     }
     public static void find (String message){
-        List<String> folderList = IO.plainFoldernamesIn(Repository.Object_DIR);
         int count = 0;
-        for (String i : folderList) {
-            List<String> fileList = Utils.plainFilenamesIn(i);
-            fileList.removeIf(next -> next.length() != IO.commitSHA1Length || !IO.commitString.equals(next.substring(next.length() - 1)));
-            for (String nextSHA1 : fileList) {
+        List<String> fileList = scanCommit();
+        for (String nextSHA1 : fileList) {
                 Commit.innerCommit nextCommit = IO.readCommit(nextSHA1);
                 if (message.equals(nextCommit.message)) {
                     System.out.println(nextSHA1);
                     count += 1;
                 }
-            }
         }
         if (count == 0){
             System.out.println("Found no commit with that message.");
@@ -210,7 +215,7 @@ public class Repository {
     }
     private List<String> ScanUntracked (){
         //TODO: next task.
-        List<String> filenames = Utils.plainFilenamesIn(CWD);
+        List<String> filenames = new ArrayList<>(Utils.plainFilenamesIn(CWD));
         for (File i: TempStaged.keySet()){
             filenames.remove(i.getName());
         }
@@ -221,7 +226,7 @@ public class Repository {
     }
     private static void printTempAreaStatus (String section, TreeMap<File, String> Map){
         System.out.printf("=== %s ===%n", section);
-        if (Map == null) { return;}
+        if (Map == null) { return; }
         for (File i: Map.keySet()){
             System.out.println(i.getName());
         }
@@ -230,7 +235,7 @@ public class Repository {
     public void status (){
         System.out.println("=== Branches ===");
         for (String branch: branches.keySet()){
-            if (Commit.initBranchName.equals(branch)){
+            if (headBranch.equals(branch)){
                 System.out.println("*" + branch);
             } else {
                 System.out.println(branch);
@@ -241,6 +246,7 @@ public class Repository {
         printTempAreaStatus("Removed Files", TempRemoved);
         //TODO: modified but not staged
         printTempAreaStatus("Modifications Not Staged For Commit", null);
+        System.out.println();
         //Untracked Files
         System.out.println("=== Untracked Files ===");
         for (String i: ScanUntracked()){
@@ -269,27 +275,30 @@ public class Repository {
         }
     }
     public void checkoutBranch (String branchName){
-        String branchSHA1 = branches.get(branchName);
-        if(branchSHA1 == null){
+        if(!branches.containsKey(branchName)){
             System.out.print("No such branch exists.");
             return;
         }
-        if(headSHA1.equals(branchSHA1)){
+        if(headBranch.equals(branchName)){
             System.out.print("No need to checkout the current branch.");
             return;
         }
-        if(!ScanUntracked().isEmpty()){
+        if(!ScanUntracked().isEmpty() || !TempStaged.isEmpty() || !TempRemoved.isEmpty()){
             System.out.print("There is an untracked file in the way; delete it, or add and commit it first.");
             return;
         }
-        restoreCommit(branchSHA1);
+        String branchSHA1 = branches.get(branchName);
+        if(!headSHA1.equals(branchSHA1)){restoreCommit(branchSHA1);}
         Utils.writeContents(Repository.HEADbranch_DIR, branchName);
         Utils.writeContents(Repository.HEADSHA1_DIR, branchSHA1);
     }
     public void checkoutFile (String fileName){ checkoutFileInCommit(headSHA1, fileName); }
     public void checkoutFileInCommit (String commitID, String fileName){
         Commit.innerCommit aimCommit;
-        if (commitID.equals(headSHA1)){
+        if (commitID.length() != IO.commitSHA1Length || !IO.splitSHA1(Repository.Object_DIR, commitID)[1].exists()){
+            System.out.println("No commit with that id exists.");
+            return;
+        } else if (commitID.equals(headSHA1)){
             aimCommit = headCommit;
         } else {
             aimCommit = IO.readCommit(commitID);
@@ -322,7 +331,7 @@ public class Repository {
             System.out.print("A branch with that name does not exist.");
             return;
         }
-        if (headSHA1.equals(branches.get(branchName))){
+        if (headBranch.equals(branchName)){
             System.out.print("Cannot remove the current branch.");
             return;
         }
@@ -331,8 +340,7 @@ public class Repository {
     }
     //TODO: Could reset go to the commit not belonging to current branch?
     public void reset (String commitSHA1){
-        File commitDIR = IO.splitSHA1(Object_DIR, commitSHA1)[1];
-        if (!commitDIR.exists()){
+        if (commitSHA1.length() != IO.commitSHA1Length || !IO.splitSHA1(Repository.Object_DIR, commitSHA1)[1].exists()){
             System.out.print("No commit with that id exists.");
             return;
         }

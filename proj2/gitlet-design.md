@@ -230,3 +230,27 @@ Runtime: constant
 
 ## Persistence
 
+## Corner case
+### add and rm
+add
+1. |Adds a copy of the file as it currently exists to the staging area (see the description of the commit command). For this reason, adding a file is also called staging the file for addition.
+2. |Staging an already-staged file overwrites the previous entry in the staging area with the new contents.
+3. |If the current working version of the file is identical to the version in the current commit, do not stage it to be added, and remove it from the staging area if it is already there (as can happen when a file is changed, added, and then changed back to it’s original version).
+4. |The file will no longer be staged for removal (see gitlet rm), if it was at the time of the command.
+5. |If the file does not exist, print the error message File does not exist. and exit without changing anything.
+
+rm
+1. |Unstage the file if it is currently staged for addition. 
+2. |If the file is tracked in the current commit, stage it for removal and remove the file from the working directory if the user has not already done so (do not remove it unless it is tracked in the current commit).
+3. |If the file is neither staged nor tracked by the head commit, print the error message No reason to remove the file.
+
+### checkout [branch name]
+1. ?Takes all files in the commit at the head of the given branch, and puts them in the working directory, overwriting the versions of the files that are already there if they exist.
+2. |Also, at the end of this command, the given branch will now be considered the current branch (HEAD).
+3. ?Any files that are tracked in the current branch but are not present in the checked-out branch are deleted. 
+4. |The staging area is cleared, unless the checked-out branch is the current branch
+5. ?If a working file is untracked in the current branch and would be overwritten by the checkout, print There is an untracked file in the way; delete it, or add and commit it first. and exit; perform this check before doing anything else. 
+
+## 其他情况
+1. blob生成blobId(sha-1 id)的时候，需要通过文件名+文件内容(字节流)生成。若只用文件内容生成blobId，不同名的两个文件内容都为空时，生成的blobId是一致的, 使用文件名+文件对象生成的sha-1哈希也是同样的结果。
+2. 

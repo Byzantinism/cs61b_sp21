@@ -71,7 +71,7 @@ public class Main {
                 } else if (args.length == 3 && args[1].equals("--")){
                     //checkout -- [file name]
                     work.checkoutFile(args[2]);
-                } else if (args.length == 4 && args[1].length() == IO.commitSHA1Length && args[2].equals("--")){
+                } else if (args.length == 4 && args[2].equals("--")){
                     //checkout [commit id] -- [file name]
                     work.checkoutFileInCommit(args[1], args[3]);
                 } else {
@@ -80,15 +80,15 @@ public class Main {
                 break;
             case "branch":
                 if (!argsCheck(args, 2)) return;
-                work.createBranch(args[2]);
+                work.createBranch(args[1]);
                 break;
             case "rm-branch":
                 if (!argsCheck(args, 2)) return;
-                work.rmBranch(args[2]);
+                work.rmBranch(args[1]);
                 break;
             case "reset":
                 if (!argsCheck(args, 2)) return;
-                work.reset(args[2]);
+                work.reset(args[1]);
                 break;
             case "merge":
                 //TODO: wait for finished.
