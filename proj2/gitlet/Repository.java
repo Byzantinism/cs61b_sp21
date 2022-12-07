@@ -213,15 +213,19 @@ public class Repository {
             System.out.println("Found no commit with that message.");
         }
     }
-    private List<String> ScanUntracked (){
-        //TODO: next task.
+    private List<String> ScanUntracked (TreeMap<File, String> map,Commit.innerCommit futureCommit){
         List<String> filenames = new ArrayList<>(Utils.plainFilenamesIn(CWD));
-        for (File i: TempStaged.keySet()){
+         for (File i: headCommit.blobMap.keySet()){
             filenames.remove(i.getName());
         }
-        for (File i: headCommit.blobMap.keySet()){
-            filenames.remove(i.getName());
-        }
+         if (map != null){
+             for (File ii: map.keySet()){
+                 filenames.remove(ii.getName());
+             }
+         }
+         if (futureCommit != null) {
+             filenames.removeIf(i -> !futureCommit.blobMap.containsKey(Utils.join(CWD, i)));
+         }
         return filenames;
     }
     private static void printTempAreaStatus (String section, TreeMap<File, String> Map){
@@ -249,12 +253,12 @@ public class Repository {
         System.out.println();
         //Untracked Files
         System.out.println("=== Untracked Files ===");
-        for (String i: ScanUntracked()){
+        for (String i: ScanUntracked(TempStaged, null)){
             System.out.println(i);
         }
         System.out.println();
     }
-    //TODO: may need to modify.
+    //TODO: need to modify.
     private static void restoreCommit (String commitSHA1){
         //Any files that are tracked in the current branch but are not present in the checked-out branch are deleted.
         List<String> filenames = Utils.plainFilenamesIn(CWD);
@@ -283,14 +287,18 @@ public class Repository {
             System.out.print("No need to checkout the current branch.");
             return;
         }
-        if(!ScanUntracked().isEmpty() || !TempStaged.isEmpty() || !TempRemoved.isEmpty()){
+        //TODO: could be some misunderstanding.
+        String branchSHA1 = branches.get(branchName);
+        Commit.innerCommit futureCommit = IO.readCommit(branchSHA1);
+        if(!ScanUntracked(null, futureCommit).isEmpty()){
             System.out.print("There is an untracked file in the way; delete it, or add and commit it first.");
             return;
         }
-        String branchSHA1 = branches.get(branchName);
         if(!headSHA1.equals(branchSHA1)){restoreCommit(branchSHA1);}
         Utils.writeContents(Repository.HEADbranch_DIR, branchName);
         Utils.writeContents(Repository.HEADSHA1_DIR, branchSHA1);
+        Utils.writeObject(Repository.Staged_DIR, new TreeMap<File, String>());
+        Utils.writeObject(Repository.Removed_DIR, new TreeMap<File, String>());
     }
     public void checkoutFile (String fileName){ checkoutFileInCommit(headSHA1, fileName); }
     public void checkoutFileInCommit (String commitID, String fileName){
@@ -344,8 +352,9 @@ public class Repository {
             System.out.print("No commit with that id exists.");
             return;
         }
-        if (!TempStaged.isEmpty() || !TempRemoved.isEmpty() || !ScanUntracked().isEmpty()){
-            //TODO: maybe some errors. (If a working file is untracked in the current branch and would be overwritten by the reset
+        //TODO: need to more work.
+        Commit.innerCommit futureCommit = IO.readCommit(commitSHA1);
+        if (!ScanUntracked(null, futureCommit).isEmpty()){
             System.out.print("There is an untracked file in the way; delete it, or add and commit it first.");
             return;
         }
@@ -353,6 +362,8 @@ public class Repository {
         branches.put(headBranch, commitSHA1);
         Utils.writeObject(Repository.branches_DIR, branches);
         Utils.writeContents(Repository.HEADSHA1_DIR, commitSHA1);
+        Utils.writeObject(Repository.Staged_DIR, new TreeMap<File, String>());
+        Utils.writeObject(Repository.Removed_DIR, new TreeMap<File, String>());
     }
     public static void merge (){}
 }
