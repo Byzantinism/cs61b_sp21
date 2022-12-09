@@ -399,7 +399,8 @@ public class Repository {
             otherContent = Utils.readContentsAsString(otherBlob);
         } else { otherContent = "";}
         String newContent = "<<<<<<< HEAD" + System.lineSeparator() +
-                            headContent + "=======" + System.lineSeparator() +
+                            headContent + System.lineSeparator() +
+                            "=======" + System.lineSeparator() +
                             otherContent + ">>>>>>>";
         String newSHA1 = Utils.sha1(newContent);
         TempStaged.put(conflictFile, newSHA1);
