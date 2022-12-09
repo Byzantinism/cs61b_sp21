@@ -167,7 +167,7 @@ public class Repository {
         System.out.println("===");
         System.out.printf("commit %s%n",iSHA1);
         if (i.p2 != null) {
-            System.out.printf("Merge: %s %s%n", i.p1.substring(0, 6), i.p2.substring(0, 6));
+            System.out.printf("Merge: %s %s%n", i.p1.substring(0, 7), i.p2.substring(0, 7));
         }
         System.out.println("Date: " + dateFormat.format(i.timeStamp));
         System.out.printf(i.message + "%n%n");
@@ -398,7 +398,15 @@ public class Repository {
             File otherBlob = IO.splitSHA1(Object_DIR, otherBranchHead.blobMap.get(conflictFile))[1];
             otherContent = Utils.readContentsAsString(otherBlob);
         } else { otherContent = null;}
-        String newContent = "<<<<<<< HEAD" + System.lineSeparator() + headContent + "=======" + System.lineSeparator() + otherContent + ">>>>>>>";
+        String newContent = "<<<<<<< HEAD" + System.lineSeparator() +
+                            headContent + System.lineSeparator() +
+                            "=======" + System.lineSeparator() +
+                            otherContent + ">>>>>>>";
+        String newSHA1 = Utils.sha1(newContent);
+        TempStaged.put(conflictFile, newSHA1);
+        File[] newSHA1DIR = IO.splitSHA1(Object_DIR, newSHA1);
+        newSHA1DIR[0].mkdir();
+        Utils.writeContents(newSHA1DIR[1], newContent);
         Utils.writeContents(conflictFile, newContent);
     }
 
@@ -439,8 +447,9 @@ public class Repository {
         if (!headCommit.blobMap.isEmpty()) {
             for (File ii: headCommit.blobMap.keySet()){
                 if (otherBranchHead.blobMap.containsKey(ii) && !headCommit.blobMap.get(ii).equals(otherBranchHead.blobMap.get(ii))){
-                    //TODO: deal conflict. Both head and other modified.
+                    //deal conflict. Both head and other modified.
                     conflictFlag = true;
+                    dealConflict(otherBranchHead, ii, 1, 1);
                 }
                 otherBranchHead.blobMap.remove(ii);
             }
@@ -481,10 +490,10 @@ public class Repository {
             System.out.print("Current branch fast-forwarded.");
             return;
         }
-        Commit.commit("Merged " + branchName + " into " + headBranch + ".",
-                headCommit, headSHA1, branchSHA1, TempStaged, TempRemoved);
         Commit.innerCommit splitpointCommit = IO.readCommit(splitpointSHA1);
         boolean conflictFlag = updateMergeFiles(otherBranchHead, splitpointCommit);
         if (conflictFlag){ System.out.print("Encountered a merge conflict.");}
+        Commit.commit("Merged " + branchName + " into " + headBranch + ".",
+                headCommit, headSHA1, branchSHA1, TempStaged, TempRemoved);
     }
 }
