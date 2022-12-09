@@ -32,7 +32,6 @@ public class Main {
             return;
         }
         // Following gitlet commands need .gitlet folder.
-        // TODO: If a user inputs a command with the wrong number or format of operands, print the message Incorrect operands. and exit.
         if (!Repository.initCheck(1)) return;
         Repository work = new Repository();
         switch(firstArg) {
@@ -91,7 +90,8 @@ public class Main {
                 work.reset(args[1]);
                 break;
             case "merge":
-                //TODO: wait for finished.
+                if (!argsCheck(args, 2)) return;
+                work.merge(args[1]);
                 break;
             default:
                 System.out.print("No command with that name exists.");

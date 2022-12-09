@@ -181,8 +181,18 @@ Repository.[TreeMap Staged: key = 文件名, value = SHA-1]
 10. branch: 在branch[]中增加一个pointer.
 11. rm-branch: 删除对应branch pointer 
 12. reset: checkout到某Commit上, 并且移动branch pointer和Head pointer. **1个branch有1个linkedlist, 可以通过popout来拿掉之前commit但是回头要merge的话,就不好处理了. 还是1个commit1个linkedlist顺带塞进SHA1/date/message**
-13. merge: 
+### 13. merge
+#### failed case
+1. |If there are staged additions or removals present, print the error message You have uncommitted changes. and exit.
+2. |If a branch with the given name does not exist, print the error message A branch with that name does not exist.
+3. |If attempting to merge a branch with itself, print the error message Cannot merge a branch with itself.
+4. If merge would generate an error because the commit that it does has no changes in it, just let the normal commit error message for this go through.
+5. |If an untracked file in the current commit would be overwritten or deleted by the merge, print There is an untracked file in the way; delete it, or add and commit it first. and exit
+6. If the split point is the same commit as the given branch, then we do nothing; the merge is complete, and the operation ends with the message Given branch is an ancestor of the current branch.
+7. If the split point is the current branch, then the effect is to check out the given branch, and the operation ends after printing the message Current branch fast-forwarded.
 
+
+   
 ### Class Commit
 1. Commit trees are immutable: once a commit node has been created, it can never be destroyed (or changed at all)
 2. Having our metadata consist only of a timestamp and log message. A commit, therefore, will consist of a log message, timestamp, a mapping of file names to blob references, a parent reference, and (for merges) a second parent reference. 

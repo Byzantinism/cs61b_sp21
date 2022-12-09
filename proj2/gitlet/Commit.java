@@ -3,30 +3,18 @@ package gitlet;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.TreeMap;
 
 /** Represents a gitlet commit object.
- *  TODO: It's a good idea to give a description here of what else this Class
- *  does at a high level.
- *
  *  @author Zebang Ge
  */
 public class Commit {
     /**
-     * TODO: add instance variables here.
-     *
      * List all instance variables of the Commit class here with a useful
      * comment above them describing what that variable represents and how that
      * variable is used. We've provided one example for `message`.
      */
-
-    //Class property
     public static String initBranchName = "master";
-    public String commitSHA1;
-    //Instance property
-    //public innerCommit commit;
-
     public static class innerCommit implements Serializable {
         public String message;
         public Date timeStamp;
@@ -44,17 +32,13 @@ public class Commit {
 
     private static String saveProcess (String branchName, innerCommit commit){
         String SHA1 = IO.saveCommit(commit);
-
         //Update branches Map.
         TreeMap<String, String> branches = Utils.readObject(Repository.branches_DIR, TreeMap.class);
         branches.put(branchName, SHA1);
         Utils.writeObject(Repository.branches_DIR, branches);
-
         //Update HEAD
-        Utils.writeContents(Repository.HEADbranch_DIR, branchName);
+        Utils.writeContents(Repository.HEADbranch_DIR, branchName); //TODO: maybe delete this line.
         Utils.writeContents(Repository.HEADSHA1_DIR, SHA1);
-
-        //TODO: fill log part.
         return SHA1;
     }
 
@@ -65,13 +49,14 @@ public class Commit {
         return SHA1;
     }
 
-    public static String commit (String message, innerCommit headCommit, String headSHA1,
+    public static String commit (String message, innerCommit headCommit,
+                                 String headSHA1, String p2,
                                  TreeMap<File, String> TempStaged,
                                  TreeMap<File, String> TempRemoved){
-        //TODO: corner cases.
         headCommit.message = message;
         headCommit.timeStamp = new Date();
         headCommit.p1 = headSHA1;
+        headCommit.p2 = p2;
 
         //2. check staged/Removed Map and save.
         for (File i: TempStaged.keySet()){

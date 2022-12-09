@@ -2,12 +2,14 @@ package gitlet;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.Serializable;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
-// need to differ Commit and blob, and use corresponding directory to input and output.
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
+//need to differ Commit, and use corresponding directory to input and output.
 public class IO {
     public static final int commitSHA1Length = Utils.UID_LENGTH + 1;
     public static final String commitString = "a";
@@ -36,21 +38,6 @@ public class IO {
         Utils.writeContents(saveDIR[1], commit_s);
         return SHA1;
     }
-    public static String saveBlob (File blob){
-        String blobContent = Utils.readContentsAsString(blob);
-        //add "p" at the end for blob type
-        String SHA1 = Utils.sha1(blobContent) + "p";
-
-        File[] saveDIR = splitSHA1(Repository.Object_DIR, SHA1);
-        if (!saveDIR[0].exists()) saveDIR[0].mkdir();
-        if (saveDIR[1].exists()) throw new GitletException("Same SHA1 file is already existed.");
-
-        //TODO: change below line to save blob file to aim address by using copy method.
-        Utils.writeContents(saveDIR[1], blobContent);
-        //TODO: ???????read blobMap inside this commit and add blob SHA1 and its origin file name.
-
-        return SHA1;
-    }
     public static Commit.innerCommit readCommit(String SHA1){
         if (SHA1 == null) return null;
         checkSHA1Length(SHA1);
@@ -61,17 +48,6 @@ public class IO {
             return Utils.readObject(SHA1_DIR, Commit.innerCommit.class);
         } else {
             throw new GitletException("This SHA1 does NOT belong to a Commit");
-        }
-    }
-    public static String readBlob(String SHA1){
-        checkSHA1Length(SHA1);
-        String last1 = SHA1.substring(SHA1.length()-1);
-        File SHA1_DIR = splitSHA1(Repository.Object_DIR, SHA1)[1];
-        //The last char should be "p"
-        if ("p".equals(last1)) {
-            return Utils.readContentsAsString(SHA1_DIR);
-        } else {
-            throw new GitletException("This SHA1 should NOT belong to a Commit");
         }
     }
     /** Filter out all but plain folders. */
@@ -94,5 +70,11 @@ public class IO {
             return Arrays.asList(folders);
         }
     }
-
+    public static void copyFile(File blobDIR, File fileDIR){
+        try {
+            Files.copy(blobDIR.toPath(), fileDIR.toPath(), REPLACE_EXISTING);
+        } catch (IOException excp) {
+            throw new GitletException(excp.getMessage());
+        }
+    }
 }
