@@ -15,22 +15,22 @@ public class IO {
     public static final String COMMITSTRING = "a";
 
     //split SHA1 to two file address.
-    public static File[] splitSHA1(File aim, String SHA1){
+    public static File[] splitSHA1(File aim, String sha1) {
         //Split SHA1 as first 2 char and rest 39 char for 2 layers.
-        File SHA1_DIR_L1 = Utils.join(aim, SHA1.substring(0, 2)); //1st layer
-        File SHA1_DIR_L2 = Utils.join(SHA1_DIR_L1, SHA1.substring(2)); //2nd layer
-        return new File[]{SHA1_DIR_L1, SHA1_DIR_L2}; //[1st layer, 2nd layer]
+        File sha1DirL1 = Utils.join(aim, sha1.substring(0, 2)); //1st layer
+        File sha1DirL2 = Utils.join(sha1DirL1, sha1.substring(2)); //2nd layer
+        return new File[]{sha1DirL1, sha1DirL2}; //[1st layer, 2nd layer]
     }
     //Check whether SHA1 is 41 length.
-    public static void checkSHA1Length(String SHA1){
-        if (SHA1.length() != COMMITSHA1LENGTH) {
+    public static void checkSHA1Length(String sha1) {
+        if (sha1.length() != COMMITSHA1LENGTH) {
             throw new GitletException("This SHA1 length is NOT 41");
         }
     }
-    public static String saveCommit (Commit.InnerCommit commit){
+    public static String saveCommit(Commit.InnerCommit commit) {
         //add COMMITSTRING at the end for commit type
-        byte[] commit_s = Utils.serialize(commit);
-        String SHA1 = Utils.sha1(commit_s) + COMMITSTRING;
+        byte[] commitS = Utils.serialize(commit);
+        String SHA1 = Utils.sha1(commitS) + COMMITSTRING;
 
         File[] saveDIR = splitSHA1(Repository.Object_DIR, SHA1);
         if (!saveDIR[0].exists()) {
@@ -39,21 +39,19 @@ public class IO {
         if (saveDIR[1].exists()) {
             throw new GitletException("Same SHA1 file is already existed.");
         }
-
-        //Utils.writeObject(saveDIR[1], commit);
-        Utils.writeContents(saveDIR[1], commit_s);
+        Utils.writeContents(saveDIR[1], commitS);
         return SHA1;
     }
-    public static Commit.InnerCommit readCommit(String SHA1){
-        if (SHA1 == null) {
+    public static Commit.InnerCommit readCommit(String sha1) {
+        if (sha1 == null) {
             return null;
         }
-        checkSHA1Length(SHA1);
-        String last1 = SHA1.substring(SHA1.length() - 1);
-        File SHA1_DIR = splitSHA1(Repository.Object_DIR, SHA1)[1];
+        checkSHA1Length(sha1);
+        String last1 = sha1.substring(sha1.length() - 1);
+        File sha1Dir = splitSHA1(Repository.Object_DIR, sha1)[1];
         //The last char should be COMMITSTRING
         if (COMMITSTRING.equals(last1)) {
-            return Utils.readObject(SHA1_DIR, Commit.InnerCommit.class);
+            return Utils.readObject(sha1Dir, Commit.InnerCommit.class);
         } else {
             throw new GitletException("This SHA1 does NOT belong to a Commit");
         }
@@ -78,11 +76,26 @@ public class IO {
             return Arrays.asList(folders);
         }
     }
-    public static void copyFile(File blobDIR, File fileDIR){
+    public static void copyFile(File blobDIR, File fileDIR) {
         try {
             Files.copy(blobDIR.toPath(), fileDIR.toPath(), REPLACE_EXISTING);
         } catch (IOException excp) {
             throw new GitletException(excp.getMessage());
         }
+    }
+
+    public static String shortCommitId(String id) {
+        File folder = Utils.join(Repository.Object_DIR, id.substring(0, 2));
+        List<String> fileList = Utils.plainFilenamesIn(folder);
+        String needMatch = id.substring(2);
+        int matchLength = id.length() - 2;
+        if (fileList != null) {
+            for (String i : fileList) {
+                if (needMatch.equals(i.substring(0, matchLength)) && (i.length() == COMMITSHA1LENGTH - 2)) {
+                    return id.substring(0, 2) + i;
+                }
+            }
+        }
+        return null;
     }
 }

@@ -297,10 +297,15 @@ public class Repository {
     public void checkoutFile (String fileName){ checkoutFileInCommit(headSHA1, fileName); }
     public void checkoutFileInCommit (String commitID, String fileName){
         Commit.InnerCommit aimCommit;
-        if (commitID.length() != IO.COMMITSHA1LENGTH || !IO.splitSHA1(Repository.Object_DIR, commitID)[1].exists()){
+        String shortSha1 = IO.shortCommitId(commitID);
+        if (shortSha1 != null) {
+            commitID = shortSha1;
+        }
+        if (commitID.length() != IO.COMMITSHA1LENGTH && !IO.splitSHA1(Repository.Object_DIR, commitID)[1].exists()) {
             System.out.println("No commit with that id exists.");
             return;
-        } else if (commitID.equals(headSHA1)){
+        }
+        if (commitID.equals(headSHA1)){
             aimCommit = headCommit;
         } else {
             aimCommit = IO.readCommit(commitID);
@@ -412,13 +417,12 @@ public class Repository {
     }
 
     private boolean updateMergeFiles(Commit.InnerCommit otherBranchHead, Commit.InnerCommit splitpointCommit){
-        //TODO: Then, if the merge encountered a conflict, print the message Encountered a merge conflict. on the terminal (not the log).
         boolean existedInHead, existedInOther, HeadSame, OtherSame, conflictFlag = false;
         for (File i: splitpointCommit.blobMap.keySet()){
             String iSHA1 = splitpointCommit.blobMap.get(i);
             existedInHead = headCommit.blobMap.containsKey(i);
             existedInOther = otherBranchHead.blobMap.containsKey(i);
-            HeadSame = OtherSame = false; //TODO: think about this init value.
+            HeadSame = OtherSame = false; //think about this init value.
             if (existedInHead) { HeadSame = iSHA1.equals(headCommit.blobMap.get(i));}
             if (existedInOther) { OtherSame = iSHA1.equals(otherBranchHead.blobMap.get(i));}
             if ((!existedInHead && !existedInOther) || (!existedInHead && OtherSame) || (HeadSame && !existedInOther)){
