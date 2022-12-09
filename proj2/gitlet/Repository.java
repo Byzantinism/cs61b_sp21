@@ -167,7 +167,7 @@ public class Repository {
         System.out.println("===");
         System.out.printf("commit %s%n",iSHA1);
         if (i.p2 != null) {
-            System.out.printf("Merge: %s %s", i.p1.substring(0, 6), i.p2.substring(0, 6));
+            System.out.printf("Merge: %s %s%n", i.p1.substring(0, 6), i.p2.substring(0, 6));
         }
         System.out.println("Date: " + dateFormat.format(i.timeStamp));
         System.out.printf(i.message + "%n%n");
@@ -467,8 +467,13 @@ public class Repository {
             return;
         }
         String branchSHA1 = branches.get(branchName);
+        Commit.innerCommit otherBranchHead = IO.readCommit(branchSHA1);
+        if (!ScanUntracked(null, otherBranchHead).isEmpty()){
+            System.out.print("There is an untracked file in the way; delete it, or add and commit it first.");
+            return;
+        }
         String splitpointSHA1 = findSplitPoint(branchSHA1);
-        if (branchSHA1.equals(splitpointSHA1)){
+                if (branchSHA1.equals(splitpointSHA1)){
             System.out.print("Given branch is an ancestor of the current branch.");
             return;
         } else if (headSHA1.equals(splitpointSHA1)){
@@ -476,14 +481,9 @@ public class Repository {
             System.out.print("Current branch fast-forwarded.");
             return;
         }
-        Commit.innerCommit splitpointCommit = IO.readCommit(splitpointSHA1);
-        if (!ScanUntracked(null, splitpointCommit).isEmpty()){
-            System.out.print("There is an untracked file in the way; delete it, or add and commit it first.");
-            return;
-        }
         Commit.commit("Merged " + branchName + " into " + headBranch + ".",
                 headCommit, headSHA1, branchSHA1, TempStaged, TempRemoved);
-        Commit.innerCommit otherBranchHead = IO.readCommit(branchSHA1);
+        Commit.innerCommit splitpointCommit = IO.readCommit(splitpointSHA1);
         boolean conflictFlag = updateMergeFiles(otherBranchHead, splitpointCommit);
         if (conflictFlag){ System.out.print("Encountered a merge conflict.");}
     }
