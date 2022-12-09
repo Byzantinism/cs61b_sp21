@@ -12,17 +12,17 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
         public Node next;
         public Node prev;
 
-        public Node (T i) {
+        public Node(T i) {
             prev = null;
             item = i;
             next = null;
         }
-        public Node (T i, Node n) {
+        public Node(T i, Node n) {
             prev = null;
             item = i;
             next = n;
         }
-        public Node (Node i0, T i, Node n) {
+        public Node(Node i0, T i, Node n) {
             prev = i0;
             item = i;
             next = n;
@@ -160,7 +160,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
 
     @Override
     //The Deque objects we’ll make are iterable (i.e. Iterable<T>) so we must provide this method to return an iterator.
-    public Iterator<T> iterator(){
+    public Iterator<T> iterator() {
         return new ListIterator();
     }
 
@@ -168,11 +168,11 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     private class ListIterator implements Iterator<T> {
         private int pos;
 
-        public ListIterator(){
+        public ListIterator() {
             pos = 0;
         }
         @Override
-        public boolean hasNext(){
+        public boolean hasNext() {
             return pos < size;
         }
         @Override
@@ -188,14 +188,14 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
      *  o is considered equal if it is a Deque and if it contains the same contents (as goverened by the generic T’s equals method) in the same order.
      *  (ADDED 2/12: You’ll need to use the instance of keywords for this. Read here for more information)*/
     public boolean equals(Object o) {
-        if (o == null) { return false; }
-        if (this == o) { return true; }
-        if (!(o instanceof Deque)) { return false; }
+        if (o == null) {return false; }
+        if (this == o) {return true; }
+        if (!(o instanceof Deque)) {return false; }
 
         Deque<T> other = (Deque<T>) o;
-        if (this.size() != other.size()) { return false; }
+        if (this.size() != other.size()) {return false; }
         for (int i = 0; i < this.size(); i++) {
-            if (this.get(i) != other.get(i)) { return false; }
+            if (this.get(i) != other.get(i)) {return false; }
         }
         return true;
     }

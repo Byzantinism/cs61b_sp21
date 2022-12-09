@@ -82,7 +82,7 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         items[nextFirst] = x;
         if (nextFirst == 0) {
             nextFirst = items.length - 1;
-        }else{
+        } else {
             nextFirst -= 1;
         }
     }
@@ -134,7 +134,7 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         resizable(size - 1);
         if (nextFirst == items.length - 1) {
             nextFirst = 0;
-        } else{
+        } else {
             nextFirst = nextFirst + 1;
         }
         T returnItem = items[nextFirst];
@@ -149,9 +149,9 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
             return null;
         }
         resizable(size - 1);
-        if (nextLast == 0){
+        if (nextLast == 0) {
             nextLast = items.length - 1;
-        } else{
+        } else {
             nextLast = nextLast - 1;
         }
         T returnItem = items[nextLast];
@@ -161,16 +161,16 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
     }
 
     @Override
-    public Iterator<T> iterator(){
+    public Iterator<T> iterator() {
         return new ArrayIterator();
     }
     private class ArrayIterator implements Iterator<T> {
         private int pos;
-        public ArrayIterator(){
+        public ArrayIterator() {
             pos = 0;
         }
         @Override
-        public boolean hasNext(){
+        public boolean hasNext() {
             return pos < size;
         }
         @Override
