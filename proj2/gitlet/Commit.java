@@ -29,7 +29,6 @@ public class Commit {
             this.blobMap = new TreeMap<>();
         }
     }
-
     private static String saveProcess(String branchName, InnerCommit commit) {
         String sha1 = IO.saveCommit(commit);
         //Update branches Map.
@@ -41,14 +40,12 @@ public class Commit {
         Utils.writeContents(Repository.HEADSHA1_DIR, sha1);
         return sha1;
     }
-
     public static String initCommit() {
         //Init Timestamp: 00:00:00 UTC, Thursday, 1 January 1970
         InnerCommit init = new InnerCommit("initial commit", new Date(0), null, null);
         String sha1 = saveProcess(initBranchName, init);
         return sha1;
     }
-
     public static String commit(String message, InnerCommit headCommit,
                                  String headSHA1, String p2,
                                  TreeMap<File, String> tempStaged,

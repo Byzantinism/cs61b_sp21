@@ -17,7 +17,6 @@ public class Main {
         }
         return true;
     }
-
     public static void main(String[] args) {
         // what if args is empty?
         if (args.length == 0){
@@ -67,10 +66,10 @@ public class Main {
                 if (args.length == 2){
                     //checkout [branch name]
                     work.checkoutBranch(args[1]);
-                } else if (args.length == 3 && args[1].equals("--")){
+                } else if (args.length == 3 && args[1].equals("--")) {
                     //checkout -- [file name]
                     work.checkoutFile(args[2]);
-                } else if (args.length == 4 && args[2].equals("--")){
+                } else if (args.length == 4 && args[2].equals("--")) {
                     //checkout [commit id] -- [file name]
                     work.checkoutFileInCommit(args[1], args[3]);
                 } else {

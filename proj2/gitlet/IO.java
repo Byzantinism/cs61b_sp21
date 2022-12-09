@@ -6,14 +6,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
-
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 //need to differ Commit, and use corresponding directory to input and output.
 public class IO {
     public static final int COMMITSHA1LENGTH = Utils.UID_LENGTH + 1;
     public static final String COMMITSTRING = "a";
-
     //split SHA1 to two file address.
     public static File[] splitSHA1(File aim, String sha1) {
         //Split SHA1 as first 2 char and rest 39 char for 2 layers.
@@ -83,7 +81,6 @@ public class IO {
             throw new GitletException(excp.getMessage());
         }
     }
-
     public static String shortCommitId(String id) {
         File folder = Utils.join(Repository.Object_DIR, id.substring(0, 2));
         List<String> fileList = Utils.plainFilenamesIn(folder);
