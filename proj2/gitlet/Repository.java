@@ -393,14 +393,13 @@ public class Repository {
         if (headFlag == 1) {
             File headBlob = IO.splitSHA1(Object_DIR, headCommit.blobMap.get(conflictFile))[1];
             headContent = Utils.readContentsAsString(headBlob);
-        } else { headContent = null;}
+        } else { headContent = "";}
         if (otherFlag == 1){
             File otherBlob = IO.splitSHA1(Object_DIR, otherBranchHead.blobMap.get(conflictFile))[1];
             otherContent = Utils.readContentsAsString(otherBlob);
-        } else { otherContent = null;}
+        } else { otherContent = "";}
         String newContent = "<<<<<<< HEAD" + System.lineSeparator() +
-                            headContent + System.lineSeparator() +
-                            "=======" + System.lineSeparator() +
+                            headContent + "=======" + System.lineSeparator() +
                             otherContent + ">>>>>>>";
         String newSHA1 = Utils.sha1(newContent);
         TempStaged.put(conflictFile, newSHA1);
