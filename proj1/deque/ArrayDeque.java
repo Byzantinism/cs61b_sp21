@@ -51,18 +51,19 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
             resize(items.length * 2);
         }
     }
-    private void resize(int newCapacity){
+    private void resize(int newCapacity) {
         T[] tempItem = (T[]) new Object[newCapacity];
         int tempItemNextFirst = newCapacity / 2 - size / 2 - 1;
         int tempItemNextLast = tempItemNextFirst + 1 + size;
 
-        if (nextFirst < nextLast){
+        if (nextFirst < nextLast) {
             System.arraycopy(items, nextFirst + 1, tempItem, tempItemNextFirst + 1, size);
-        }else if (nextFirst > nextLast){
-            System.arraycopy(items, nextFirst + 1, tempItem, tempItemNextFirst + 1, items.length - nextFirst - 1);
-            System.arraycopy(items, 0, tempItem, tempItemNextFirst + items.length - nextFirst, nextLast);
+        } else if (nextFirst > nextLast) {
+            System.arraycopy(items, nextFirst + 1, tempItem, tempItemNextFirst + 1,
+                    items.length - nextFirst - 1);
+            System.arraycopy(items, 0, tempItem,
+                    tempItemNextFirst + items.length - nextFirst, nextLast);
         }
-
         items = tempItem;
         nextFirst = tempItemNextFirst;
         nextLast = tempItemNextLast;
@@ -75,11 +76,11 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
     }*/
 
     // add item to as the first
-    public void addFirst(T x){
+    public void addFirst(T x) {
         resizable(size + 1);
         size += 1;
         items[nextFirst] = x;
-        if (nextFirst == 0){
+        if (nextFirst == 0) {
             nextFirst = items.length - 1;
         }else{
             nextFirst -= 1;
@@ -90,16 +91,16 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         resizable(size + 1);
         size += 1;
         items[nextLast] = x;
-        if (nextLast == items.length - 1){
+        if (nextLast == items.length - 1) {
             nextLast = 0;
-        }else{
+        } else {
             nextLast += 1;
         }
 
     }
     //the real index of i-th item.
-    private int indexI(int i){
-        if (nextFirst + 1 + i < items.length){
+    private int indexI(int i) {
+        if (nextFirst + 1 + i < items.length) {
             return nextFirst + 1 + i;
         } else {
             return nextFirst + 1 + i - items.length;
@@ -107,7 +108,7 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
     }
     /** Gets the ith item in the list (0 is the front). */
     public T get(int i) {
-        if (isEmpty()){
+        if (isEmpty()) {
             System.out.println("This list is empty, nothing can be got");
             return null;
         } else if (i > size - 1) {
@@ -125,13 +126,13 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         return get(size - 1);
     }
     //remove the first item
-    public T removeFirst(){
-        if (isEmpty()){
+    public T removeFirst() {
+        if (isEmpty()) {
             System.out.println("This list is empty, nothing can be removed");
             return null;
         }
         resizable(size - 1);
-        if (nextFirst == items.length - 1){
+        if (nextFirst == items.length - 1) {
             nextFirst = 0;
         } else{
             nextFirst = nextFirst + 1;
@@ -143,7 +144,7 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
     }
     /** Deletes item from back of the list and returns deleted item. */
     public T removeLast() {
-        if (isEmpty()){
+        if (isEmpty()) {
             System.out.println("This list is empty, nothing can be removed");
             return null;
         }
@@ -173,33 +174,33 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
             return pos < size;
         }
         @Override
-        public T next(){
+        public T next() {
             T returnItem =  get(pos);
             pos += 1;
             return returnItem;
         }
     }
     @Override
-    public boolean equals(Object o){
-        if (o == null){ return false; }
-        if (this == o){ return true; }
+    public boolean equals(Object o) {
+        if (o == null) { return false; }
+        if (this == o) { return true; }
         if (!(o instanceof Deque)){ return false; }
 
         Deque<T> other = (Deque<T>) o;
-        if (this.size() != other.size()){ return false; }
-        for (int i = 0; i < this.size(); i++){
-            if (this.get(i) != other.get(i)){ return false; }
+        if (this.size() != other.size()) { return false; }
+        for (int i = 0; i < this.size(); i++) {
+            if (this.get(i) != other.get(i)) { return false; }
         }
         return true;
     }
 
-    public void printDeque(){
-        if (isEmpty()){
+    public void printDeque() {
+        if (isEmpty()) {
             System.out.println("This ArrayDeque list is empty");
             return;
         }
         System.out.print("[ ");
-        for (T x: this){
+        for (T x: this) {
             System.out.print(x + " ");
         }
         System.out.println("]");

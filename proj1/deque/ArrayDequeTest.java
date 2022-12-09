@@ -27,7 +27,7 @@ public class ArrayDequeTest {
     }
 
     @Test
-    public void randomizedTest(){
+    public void randomizedTest() {
         LinkedListDeque<Integer> reference = new LinkedListDeque<>();
         ArrayDeque<Integer> result = new ArrayDeque<>();
 
@@ -50,7 +50,7 @@ public class ArrayDequeTest {
                 result.addLast(randVal);
                 //System.out.println("addLast(" + randVal + ")");
 
-            } else if (operationNumber == 2 && reference.size() != 0 && result.size() != 0){
+            } else if (operationNumber == 2 && reference.size() != 0 && result.size() != 0) {
                 // getLast
                 int last1 = reference.getLast();
                 int last2 = result.getLast();
@@ -59,7 +59,7 @@ public class ArrayDequeTest {
                 assertEquals("Should have the same last item", last1, last2);
                 //assertEquals("Should have the same last item", reference.getLast(), result.getLast());
 
-            } else if (operationNumber == 3 && reference.size() != 0 && result.size() != 0){
+            } else if (operationNumber == 3 && reference.size() != 0 && result.size() != 0) {
                 // remove Last
                 int remove_last_1 = reference.removeLast();
                 int remove_last_2 = result.removeLast();
@@ -68,35 +68,35 @@ public class ArrayDequeTest {
                 assertEquals("Should remove the same last item", remove_last_1, remove_last_2);
                 //assertEquals("Should remove the same last item", reference.removeLast(), result.removeLast());
 
-            } else if (operationNumber == 4){
+            } else if (operationNumber == 4) {
                 //&& result.size() != 8
                 //addFirst
                 int randVal = StdRandom.uniform(0, 100);
                 reference.addFirst(randVal);
                 result.addFirst(randVal);
 
-            } else if (operationNumber == 5 && reference.size() != 0 && result.size() != 0){
+            } else if (operationNumber == 5 && reference.size() != 0 && result.size() != 0) {
                 //getFirst
                 int first1 = reference.getFirst();
                 int first2 = result.getFirst();
                 assertEquals("Should have the same first item", first1, first2);
                 //assertEquals("Should have the same first item", reference.getFirst(), result.getFirst());
 
-            } else if (operationNumber == 6 && reference.size() != 0 && result.size() != 0){
+            } else if (operationNumber == 6 && reference.size() != 0 && result.size() != 0) {
                 //removeFirst
                 int remove_first_1 = reference.removeFirst();
                 int remove_first_2 = result.removeFirst();
                 assertEquals("Should remove the same first item", remove_first_1, remove_first_2);
                 //assertEquals("Should remove the same first item", reference.removeFirst(), result.removeFirst());
 
-            } else if (operationNumber == 7 && reference.size() != 0 && result.size() != 0){
+            } else if (operationNumber == 7 && reference.size() != 0 && result.size() != 0) {
                 //get(i)
                 int randVal = StdRandom.uniform(0, reference.size());
                 int ith1 = reference.get(randVal);
                 int ith2 = result.get(randVal);
                 assertEquals("Should have the same i-th item", ith1, ith2);
                 //assertEquals("Should have the same i-th item", reference.get(randVal), result.get(randVal));
-            }else if (operationNumber == 8 && reference.size() != 0 && result.size() != 0){
+            }else if (operationNumber == 8 && reference.size() != 0 && result.size() != 0) {
                 boolean t1 = result.equals(reference);
                 boolean t2 = reference.equals(result);
                 assertTrue("Result equals Reference", t1);
