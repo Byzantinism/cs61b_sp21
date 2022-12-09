@@ -1,0 +1,6 @@
+# global-log testcases
+I test00-common.inc
+> global-log
+${COMMIT_LOG}
+${COMMIT_LOG}
+<<<*

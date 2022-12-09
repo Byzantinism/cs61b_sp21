@@ -1,0 +1,5 @@
+# find testcases
+I test00-common.inc
+> find "initial commit"
+60dc631487fcaf955fc8df01ff9e8159ce6cc0b2a
+<<<

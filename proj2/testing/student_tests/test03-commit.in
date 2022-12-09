@@ -1,0 +1,32 @@
+# commit & log testcases
+I definitions.inc
+> init
+<<<
++ wug.txt wug.txt
+
+> commit "added wug"
+No changes added to the commit.
+<<<
+
+> add wug.txt
+<<<
+
+> commit
+Incorrect operands.
+<<<
+> commit "              "
+Please enter a commit message.
+<<<
+> commit "added wug"
+<<<
+> log
+===
+${COMMIT_HEAD}
+added wug
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+

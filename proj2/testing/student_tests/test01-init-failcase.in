@@ -1,0 +1,13 @@
+# Basic initialization
+>
+Please enter a command.
+<<<
+> init X
+Incorrect operands.
+<<<
+> init
+<<<
+E .gitlet
+> init
+A Gitlet version-control system already exists in the current directory.
+<<<

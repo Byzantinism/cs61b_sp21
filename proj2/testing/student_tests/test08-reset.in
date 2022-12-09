@@ -1,0 +1,14 @@
+# check & branch testcases
+I test00-common.inc
+> reset 1
+No commit with that id exists.
+<<<
+> reset 60dc631487fcaf955fc8df01ff9e8159ce6cc0b2a
+<<<
+> log
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+* wug.txt
