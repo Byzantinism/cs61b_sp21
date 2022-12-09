@@ -18,14 +18,6 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         nextLast = startPos;
         items = (T[]) new Object[initSize];
     }
-    /** Creates a non-empty list. */
-    public ArrayDeque(T x) {
-        size = 1;
-        nextFirst = startPos - 1;
-        nextLast = startPos + 1;
-        items = (T[]) new Object[initSize];
-        items[startPos] = x;
-    }
     //Returns true if deque is empty, false otherwise.
     //public boolean isEmpty(){return size == 0;}
 
@@ -74,7 +66,6 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         System.arraycopy(items, 0, a, 0, size);
         items = a;
     }*/
-
     // add item to as the first
     public void addFirst(T x) {
         resizable(size + 1);
@@ -96,7 +87,6 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         } else {
             nextLast += 1;
         }
-
     }
     //the real index of i-th item.
     private int indexI(int i) {
@@ -159,14 +149,13 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         size -= 1;
         return returnItem;
     }
-
     @Override
     public Iterator<T> iterator() {
         return new ArrayIterator();
     }
     private class ArrayIterator implements Iterator<T> {
         private int pos;
-        public ArrayIterator() {
+        ArrayIterator() {
             pos = 0;
         }
         @Override
@@ -182,18 +171,27 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
     }
     @Override
     public boolean equals(Object o) {
-        if (o == null) { return false; }
-        if (this == o) { return true; }
-        if (!(o instanceof Deque)){ return false; }
+        if (o == null) {
+            return false;
+        }
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Deque)) {
+            return false;
+        }
 
         Deque<T> other = (Deque<T>) o;
-        if (this.size() != other.size()) { return false; }
+        if (this.size() != other.size()) {
+            return false;
+        }
         for (int i = 0; i < this.size(); i++) {
-            if (this.get(i) != other.get(i)) { return false; }
+            if (this.get(i) != other.get(i)) {
+                return false;
+            }
         }
         return true;
     }
-
     public void printDeque() {
         if (isEmpty()) {
             System.out.println("This ArrayDeque list is empty");

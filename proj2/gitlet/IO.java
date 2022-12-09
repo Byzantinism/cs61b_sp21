@@ -28,9 +28,9 @@ public class IO {
     public static String saveCommit(Commit.InnerCommit commit) {
         //add COMMITSTRING at the end for commit type
         byte[] commitS = Utils.serialize(commit);
-        String SHA1 = Utils.sha1(commitS) + COMMITSTRING;
+        String sha1 = Utils.sha1(commitS) + COMMITSTRING;
 
-        File[] saveDIR = splitSHA1(Repository.Object_DIR, SHA1);
+        File[] saveDIR = splitSHA1(Repository.Object_DIR, sha1);
         if (!saveDIR[0].exists()) {
             saveDIR[0].mkdir();
         }
@@ -38,7 +38,7 @@ public class IO {
             throw new GitletException("Same SHA1 file is already existed.");
         }
         Utils.writeContents(saveDIR[1], commitS);
-        return SHA1;
+        return sha1;
     }
     public static Commit.InnerCommit readCommit(String sha1) {
         if (sha1 == null) {
@@ -88,7 +88,8 @@ public class IO {
         int matchLength = id.length() - 2;
         if (fileList != null) {
             for (String i : fileList) {
-                if (needMatch.equals(i.substring(0, matchLength)) && (i.length() == COMMITSHA1LENGTH - 2)) {
+                if (needMatch.equals(i.substring(0, matchLength)) &&
+                        (i.length() == COMMITSHA1LENGTH - 2)) {
                     return id.substring(0, 2) + i;
                 }
             }
