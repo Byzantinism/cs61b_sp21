@@ -40,7 +40,7 @@ public class Repository {
     public transient TreeMap<String, String> branches; //Save corresponding branches' commit SHA1 value.
     public transient String headBranch;
     public transient String headSHA1;
-    public transient Commit.innerCommit headCommit;
+    public transient Commit.InnerCommit headCommit;
 
     public Repository(){
         TempStaged = readObject(Staged_DIR, TreeMap.class);
@@ -154,7 +154,7 @@ public class Repository {
         String nextSHA1 = Commit.commit(message, headCommit, headSHA1, null, TempStaged, TempRemoved);
     }
     public void log (){
-        Commit.innerCommit i = headCommit;
+        Commit.InnerCommit i = headCommit;
         String iSHA1 = headSHA1;
         while(i != null){
             printLog(i, iSHA1);
@@ -163,7 +163,7 @@ public class Repository {
         }
     }
 
-    private static void printLog(Commit.innerCommit i, String iSHA1){
+    private static void printLog(Commit.InnerCommit i, String iSHA1){
         System.out.println("===");
         System.out.printf("commit %s%n",iSHA1);
         if (i.p2 != null) {
@@ -179,7 +179,7 @@ public class Repository {
         for (String i: folderList){
             List<String> fileList = Utils.plainFilenamesIn(Utils.join(Object_DIR, i));
             for (String next: fileList){
-                if (next != null && next.length() == (IO.commitSHA1Length -2) && IO.commitString.equals(next.substring(next.length() - 1))){
+                if (next != null && next.length() == (IO.COMMITSHA1LENGTH -2) && IO.COMMITSTRING.equals(next.substring(next.length() - 1))){
                     commitList.add(i + next);//Combine first 2 and last 39 digits.
                 }
             }
@@ -189,7 +189,7 @@ public class Repository {
     public static void globalLog (){
         List<String> fileList = scanCommit();
         for (String nextSHA1: fileList){
-                Commit.innerCommit nextCommit = IO.readCommit(nextSHA1);
+                Commit.InnerCommit nextCommit = IO.readCommit(nextSHA1);
                 printLog(nextCommit, nextSHA1);
         }
     }
@@ -197,7 +197,7 @@ public class Repository {
         int count = 0;
         List<String> fileList = scanCommit();
         for (String nextSHA1 : fileList) {
-                Commit.innerCommit nextCommit = IO.readCommit(nextSHA1);
+                Commit.InnerCommit nextCommit = IO.readCommit(nextSHA1);
                 if (message.equals(nextCommit.message)) {
                     System.out.println(nextSHA1);
                     count += 1;
@@ -207,7 +207,7 @@ public class Repository {
             System.out.println("Found no commit with that message.");
         }
     }
-    private List<String> ScanUntracked (TreeMap<File, String> map,Commit.innerCommit futureCommit){
+    private List<String> ScanUntracked (TreeMap<File, String> map, Commit.InnerCommit futureCommit){
         List<String> filenames = new ArrayList<>(Utils.plainFilenamesIn(CWD));
          for (File i: headCommit.blobMap.keySet()){
             filenames.remove(i.getName());
@@ -263,7 +263,7 @@ public class Repository {
             }
         }
         //Takes all files in the commit at the head of the given branch, and puts them in the working directory, overwriting the versions of the files that are already there if they exist.
-        Commit.innerCommit branchCommit = IO.readCommit(commitSHA1);
+        Commit.InnerCommit branchCommit = IO.readCommit(commitSHA1);
         for (File i: branchCommit.blobMap.keySet()){
             File blobDIR = IO.splitSHA1(Object_DIR, branchCommit.blobMap.get(i))[1];
             try {
@@ -283,7 +283,7 @@ public class Repository {
             return;
         }
         String branchSHA1 = branches.get(branchName);
-        Commit.innerCommit futureCommit = IO.readCommit(branchSHA1);
+        Commit.InnerCommit futureCommit = IO.readCommit(branchSHA1);
         if(!ScanUntracked(null, futureCommit).isEmpty()){
             System.out.print("There is an untracked file in the way; delete it, or add and commit it first.");
             return;
@@ -296,8 +296,8 @@ public class Repository {
     }
     public void checkoutFile (String fileName){ checkoutFileInCommit(headSHA1, fileName); }
     public void checkoutFileInCommit (String commitID, String fileName){
-        Commit.innerCommit aimCommit;
-        if (commitID.length() != IO.commitSHA1Length || !IO.splitSHA1(Repository.Object_DIR, commitID)[1].exists()){
+        Commit.InnerCommit aimCommit;
+        if (commitID.length() != IO.COMMITSHA1LENGTH || !IO.splitSHA1(Repository.Object_DIR, commitID)[1].exists()){
             System.out.println("No commit with that id exists.");
             return;
         } else if (commitID.equals(headSHA1)){
@@ -338,11 +338,11 @@ public class Repository {
 
     public void reset (String commitSHA1){
         //TODO: Could reset go to the commit not belonging to current branch?
-        if (commitSHA1.length() != IO.commitSHA1Length || !IO.splitSHA1(Repository.Object_DIR, commitSHA1)[1].exists()){
+        if (commitSHA1.length() != IO.COMMITSHA1LENGTH || !IO.splitSHA1(Repository.Object_DIR, commitSHA1)[1].exists()){
             System.out.print("No commit with that id exists.");
             return;
         }
-        Commit.innerCommit futureCommit = IO.readCommit(commitSHA1);
+        Commit.InnerCommit futureCommit = IO.readCommit(commitSHA1);
         if (!ScanUntracked(null, futureCommit).isEmpty()){
             System.out.print("There is an untracked file in the way; delete it, or add and commit it first.");
             return;
@@ -361,7 +361,7 @@ public class Repository {
         Queue<String> SHA1Q = new LinkedList<>();
         SHA1Q.offer(headSHA1);
         SHA1Q.offer(branchSHA1);
-        Commit.innerCommit nextCommit;
+        Commit.InnerCommit nextCommit;
         while (!SHA1Q.isEmpty()){
             String nextSHA1 = SHA1Q.poll();
             nextCommit = IO.readCommit(nextSHA1);
@@ -388,7 +388,7 @@ public class Repository {
      * @param headFlag: 1 = file existed. 0 = file not existed.
      * @param otherFlag: 1 = file existed. 0 = file not existed.
      */
-    private void dealConflict (Commit.innerCommit otherBranchHead, File conflictFile, int headFlag, int otherFlag){
+    private void dealConflict (Commit.InnerCommit otherBranchHead, File conflictFile, int headFlag, int otherFlag){
         String headContent, otherContent;
         if (headFlag == 1) {
             File headBlob = IO.splitSHA1(Object_DIR, headCommit.blobMap.get(conflictFile))[1];
@@ -399,8 +399,7 @@ public class Repository {
             otherContent = Utils.readContentsAsString(otherBlob);
         } else { otherContent = "";}
         String newContent = "<<<<<<< HEAD" + System.lineSeparator() +
-                            headContent + System.lineSeparator() +
-                            "=======" + System.lineSeparator() +
+                            headContent + "=======" + System.lineSeparator() +
                             otherContent + ">>>>>>>";
         String newSHA1 = Utils.sha1(newContent);
         TempStaged.put(conflictFile, newSHA1);
@@ -410,7 +409,7 @@ public class Repository {
         Utils.writeContents(conflictFile, newContent);
     }
 
-    private boolean updateMergeFiles(Commit.innerCommit otherBranchHead, Commit.innerCommit splitpointCommit){
+    private boolean updateMergeFiles(Commit.InnerCommit otherBranchHead, Commit.InnerCommit splitpointCommit){
         //TODO: Then, if the merge encountered a conflict, print the message Encountered a merge conflict. on the terminal (not the log).
         boolean existedInHead, existedInOther, HeadSame, OtherSame, conflictFlag = false;
         for (File i: splitpointCommit.blobMap.keySet()){
@@ -476,7 +475,7 @@ public class Repository {
             return;
         }
         String branchSHA1 = branches.get(branchName);
-        Commit.innerCommit otherBranchHead = IO.readCommit(branchSHA1);
+        Commit.InnerCommit otherBranchHead = IO.readCommit(branchSHA1);
         if (!ScanUntracked(null, otherBranchHead).isEmpty()){
             System.out.print("There is an untracked file in the way; delete it, or add and commit it first.");
             return;
@@ -490,7 +489,7 @@ public class Repository {
             System.out.print("Current branch fast-forwarded.");
             return;
         }
-        Commit.innerCommit splitpointCommit = IO.readCommit(splitpointSHA1);
+        Commit.InnerCommit splitpointCommit = IO.readCommit(splitpointSHA1);
         boolean conflictFlag = updateMergeFiles(otherBranchHead, splitpointCommit);
         if (conflictFlag){ System.out.print("Encountered a merge conflict.");}
         Commit.commit("Merged " + branchName + " into " + headBranch + ".",
