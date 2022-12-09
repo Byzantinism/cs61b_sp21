@@ -37,6 +37,7 @@ public class Commit {
         branches.put(branchName, SHA1);
         Utils.writeObject(Repository.branches_DIR, branches);
         //Update HEAD
+        Utils.writeContents(Repository.HEADbranch_DIR, branchName); //do NOT delete this line because of init Commit.
         Utils.writeContents(Repository.HEADSHA1_DIR, SHA1);
         return SHA1;
     }
