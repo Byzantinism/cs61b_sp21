@@ -402,7 +402,7 @@ public class Repository {
                             headContent +
                             "=======" + System.lineSeparator() +
                             otherContent +
-                            ">>>>>>>";
+                            ">>>>>>>" + System.lineSeparator();
         String newSHA1 = Utils.sha1(newContent);
         TempStaged.put(conflictFile, newSHA1);
         File[] newSHA1DIR = IO.splitSHA1(Object_DIR, newSHA1);
